@@ -14,4 +14,5 @@
 | [06-tools.md](06-tools.md) | 편집·클리핑·트렌드 분석 툴 |
 | [07-channel-playbook.md](07-channel-playbook.md) | 채널 개설→검증→스케일 체크리스트 |
 | [09-niche-ranking.md](09-niche-ranking.md) | 인기×효율 니치 랭킹과 시작 전략 |
+| [10-ai-tech-launch-plan.md](10-ai-tech-launch-plan.md) | AI·테크 니치 경쟁분석 방법, 30개 주제, 4주 일정 |
 | [08-sources.md](08-sources.md) | 전체 출처 링크 |
