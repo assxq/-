@@ -1,0 +1,8 @@
+work/
+history.jsonl
+stats.csv
+token.json
+client_secret.json
+config.yaml
+__pycache__/
+.pytest_cache/

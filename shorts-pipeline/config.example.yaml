@@ -1,0 +1,30 @@
+# cp config.example.yaml config.yaml  (config.yaml is git-ignored)
+channel:
+  name: "Tried It Today"
+  language: en
+  niche: "AI tools demos"
+  affiliate_disclosure: "Affiliate links may earn me a commission."
+
+llm:
+  model: claude-sonnet-5-5      # needs ANTHROPIC_API_KEY env var
+  max_tokens: 1500
+
+topics:
+  hn_queries: ["AI tool", "LLM", "ChatGPT", "open source AI"]
+  manual_file: topics.txt        # one topic per line, takes priority over auto-collected ones
+  per_run: 5
+
+voice:
+  provider: human                # human | elevenlabs | espeak(test only)
+  elevenlabs_voice_id: ""        # needs ELEVENLABS_API_KEY env var
+
+render:
+  max_seconds: 59
+  font: "DejaVu Sans"            # any font installed on the machine
+
+upload:
+  privacy: private               # private | unlisted | public
+  category_id: "28"              # Science & Technology
+  contains_synthetic_media: false  # set true if voice/visuals are AI-generated realistic content
+  require_approval: true         # never upload without `approve`
+  daily_limit: 2
