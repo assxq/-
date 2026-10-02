@@ -13,4 +13,5 @@
 | [05-localization-global.md](05-localization-global.md) | 다국어 더빙, 현지화, 글로벌 확장 |
 | [06-tools.md](06-tools.md) | 편집·클리핑·트렌드 분석 툴 |
 | [07-channel-playbook.md](07-channel-playbook.md) | 채널 개설→검증→스케일 체크리스트 |
+| [09-niche-ranking.md](09-niche-ranking.md) | 인기×효율 니치 랭킹과 시작 전략 |
 | [08-sources.md](08-sources.md) | 전체 출처 링크 |
