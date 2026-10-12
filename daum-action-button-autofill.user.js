@@ -50,15 +50,24 @@
   // ---- 작은 컨트롤 패널 ----
   const panel = document.createElement('div');
   panel.style.cssText =
-    'position:fixed;right:16px;bottom:16px;z-index:99999;background:#fff;border:1px solid #ccc;' +
-    'border-radius:8px;padding:10px;font:13px sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.2);width:260px';
+    'position:fixed;right:16px;bottom:16px;z-index:99999;background:#fff;border:1px solid #e2e5ea;' +
+    'border-radius:16px;padding:16px;font:14px -apple-system,"Segoe UI",sans-serif;color:#222;' +
+    'box-shadow:0 4px 16px rgba(0,0,0,.12);width:280px;box-sizing:border-box';
+  const field =
+    'width:100%;box-sizing:border-box;height:40px;padding:0 12px;margin-bottom:8px;border:1px solid #dde3ea;' +
+    'border-radius:8px;background:#f1f5f9;font-size:14px;color:#222;outline:none';
   panel.innerHTML = `
-    <div style="font-weight:600;margin-bottom:6px">액션 버튼 자동 채우기</div>
-    <input id="aa-text" placeholder="버튼 문구" style="width:100%;box-sizing:border-box;margin-bottom:4px">
-    <input id="aa-url" placeholder="링크 (예: https://youtu.be/...)" style="width:100%;box-sizing:border-box;margin-bottom:4px">
-    <label style="display:block;margin-bottom:6px"><input id="aa-auto" type="checkbox"> 입력란이 보이면 자동 채움</label>
-    <button id="aa-go" style="width:100%">지금 채우기</button>
-    <div id="aa-msg" style="margin-top:4px;color:#666"></div>`;
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:15px">액션 버튼 채우기</b>
+      <span id="aa-close" style="cursor:pointer;font-size:20px;line-height:1;color:#555">×</span>
+    </div>
+    <input id="aa-text" placeholder="버튼 문구" style="${field}">
+    <div style="display:flex;gap:8px">
+      <input id="aa-url" placeholder="https://youtu.be/..." style="${field};flex:1;min-width:0">
+      <button id="aa-go" style="height:40px;padding:0 14px;border:0;border-radius:8px;background:#2350d0;color:#fff;font-weight:600;font-size:14px;cursor:pointer">채우기</button>
+    </div>
+    <label style="display:block;font-size:13px;color:#555;cursor:pointer"><input id="aa-auto" type="checkbox"> 입력란이 보이면 자동 채움</label>
+    <div id="aa-msg" style="margin-top:4px;font-size:12px;color:#666;min-height:16px"></div>`;
   document.body.appendChild(panel);
 
   const $ = (id) => panel.querySelector(id);
@@ -75,6 +84,7 @@
     msg(fill(text, url) ? '채웠습니다 ✔' : '액션 버튼 입력란을 못 찾았어요.');
   };
   $('#aa-go').onclick = run;
+  $('#aa-close').onclick = () => panel.remove();
   $('#aa-auto').onchange = (e) => save('auto', e.target.checked);
 
   // 클립보드에 유튜브 링크가 있으면 패널에 붙여넣기 (패널 클릭 시)
