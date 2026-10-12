@@ -3,7 +3,7 @@
 // @namespace    https://github.com/assxq/-
 // @version      1.0.0
 // @description  영상 업로드 화면의 "액션 버튼" 문구/링크 입력란을 자동으로 채웁니다.
-// @match        https://channel.daum.net/studio/channels/*/videos/*
+// @match        https://channel.daum.net/studio/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @run-at       document-idle
@@ -52,27 +52,44 @@
   }
 
   // ---- 작은 컨트롤 패널 ----
-  const panel = document.createElement('div');
-  panel.style.cssText =
-    'position:fixed;right:16px;bottom:196px;z-index:99999;background:#fff;border:1px solid #e2e5ea;' +
-    'border-radius:16px;padding:16px;font:14px -apple-system,"Segoe UI",sans-serif;color:#222;' +
-    'box-shadow:0 4px 16px rgba(0,0,0,.12);width:280px;box-sizing:border-box';
+  console.log('[액션버튼 자동채우기] 시작');
+  const el = (tag, css, props) => {
+    const e = document.createElement(tag);
+    if (css) e.style.cssText = css;
+    Object.assign(e, props || {});
+    return e;
+  };
   const field =
     'width:100%;box-sizing:border-box;height:40px;padding:0 12px;margin-bottom:8px;border:1px solid #dde3ea;' +
     'border-radius:8px;background:#f1f5f9;font-size:14px;color:#222;outline:none';
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <b style="font-size:15px">액션 버튼 채우기</b>
-      <span id="aa-close" style="cursor:pointer;font-size:20px;line-height:1;color:#555">×</span>
-    </div>
-    <input id="aa-text" placeholder="버튼 문구" style="${field}">
-    <div style="display:flex;gap:8px">
-      <input id="aa-url" placeholder="https://youtu.be/..." style="${field};flex:1;min-width:0">
-      <button id="aa-go" style="height:40px;padding:0 14px;border:0;border-radius:8px;background:#2350d0;color:#fff;font-weight:600;font-size:14px;cursor:pointer">채우기</button>
-    </div>
-    <label style="display:block;font-size:13px;color:#555;cursor:pointer"><input id="aa-auto" type="checkbox"> 입력란이 보이면 자동 채움</label>
-    <div id="aa-msg" style="margin-top:4px;font-size:12px;color:#666;min-height:16px"></div>`;
-  document.body.appendChild(panel);
+
+  const panel = el('div',
+    'position:fixed;right:16px;bottom:196px;z-index:2147483647;background:#fff;border:1px solid #e2e5ea;' +
+    'border-radius:16px;padding:16px;font:14px -apple-system,"Segoe UI",sans-serif;color:#222;' +
+    'box-shadow:0 4px 16px rgba(0,0,0,.12);width:280px;box-sizing:border-box');
+
+  const head = el('div', 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px');
+  head.append(
+    el('b', 'font-size:15px', { textContent: '액션 버튼 채우기' }),
+    el('span', 'cursor:pointer;font-size:20px;line-height:1;color:#555', { id: 'aa-close', textContent: '×' })
+  );
+  const row = el('div', 'display:flex;gap:8px');
+  row.append(
+    el('input', field + ';flex:1;min-width:0', { id: 'aa-url', placeholder: 'https://youtu.be/...' }),
+    el('button', 'height:40px;padding:0 14px;border:0;border-radius:8px;background:#2350d0;color:#fff;font-weight:600;font-size:14px;cursor:pointer',
+      { id: 'aa-go', textContent: '채우기' })
+  );
+  const autoLabel = el('label', 'display:block;font-size:13px;color:#555;cursor:pointer');
+  autoLabel.append(el('input', '', { id: 'aa-auto', type: 'checkbox' }), ' 입력란이 보이면 자동 채움');
+
+  panel.append(
+    head,
+    el('input', field, { id: 'aa-text', placeholder: '버튼 문구' }),
+    row,
+    autoLabel,
+    el('div', 'margin-top:4px;font-size:12px;color:#666;min-height:16px', { id: 'aa-msg' })
+  );
+  (document.body || document.documentElement).appendChild(panel);
 
   const $ = (id) => panel.querySelector(id);
   $('#aa-text').value = load('text', DEFAULT_TEXT);
