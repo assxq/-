@@ -109,17 +109,21 @@
   $('#aa-auto').onchange = (e) => save('auto', e.target.checked);
 
   // 클립보드의 유튜브 링크를 자동으로 가져오기 (페이지 로드/탭 복귀/클릭 시)
-  const YT = /^https?:\/\/(youtu\.be|(www\.)?youtube\.com)\//;
+  const YT = /^https?:\/\/\S+$/;
   let lastClip = '';
   async function pullClipboard() {
     try {
       const t = (await navigator.clipboard.readText()).trim();
-      if (!YT.test(t) || t === lastClip) return;
+      if (!t) return msg('클립보드가 비어 있어요');
+      if (!YT.test(t)) return msg('클립보드가 링크가 아니에요: ' + t.slice(0, 30));
+      if (t === lastClip) return;
       lastClip = t;
       $('#aa-url').value = t;
       msg('클립보드 링크를 가져왔어요');
       if ($('#aa-auto').checked) run();
-    } catch (_) { /* 권한 없음/포커스 없음 */ }
+    } catch (err) {
+      msg('클립보드 읽기 실패: ' + (err && err.name) + ' (주소창 자물쇠 → 클립보드 허용 확인)');
+    }
   }
   pullClipboard();
   window.addEventListener('focus', pullClipboard);
