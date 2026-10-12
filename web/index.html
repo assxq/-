@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OLD FUTURE | MIA-027</title>
+<meta name="description" content="Station 7 is still transmitting. No reply.">
+<meta name="theme-color" content="#0b0d0c">
+<meta property="og:title" content="OLD FUTURE | MIA-027">
+<meta property="og:description" content="Station 7 is still transmitting. No reply.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0d0c'/%3E%3Crect x='4' y='9' width='24' height='15' rx='2' fill='%23d4c7a8'/%3E%3Ccircle cx='11' cy='16' r='3' fill='%230b0d0c'/%3E%3Ccircle cx='21' cy='16' r='3' fill='%230b0d0c'/%3E%3Ccircle cx='16' cy='5' r='2' fill='%23ff3b2f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<style>
+:root{
+  --bg:#0b0d0c;
+  --beige:#d6c9aa; --beige-d:#b8a984; --beige-dd:#8f8160;
+  --face:#2a2925; --face-l:#3a3935;
+  --green:#4dff88; --green-d:#1b6b3a; --lcd:#04120a;
+  --amber:#ffb000; --red:#ff3b2f;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --lcdfont:"VT323", var(--mono);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+body{
+  display:flex;align-items:center;justify-content:center;
+  color:#ddd;font-family:var(--mono);
+  background:
+    radial-gradient(900px 560px at 18% 8%, rgba(255,176,0,.16), transparent 62%),
+    radial-gradient(700px 500px at 90% 100%, rgba(77,255,136,.06), transparent 60%),
+    var(--bg);
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+}
+#dust{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.grain{position:fixed;inset:-50%;pointer-events:none;z-index:50;opacity:.09;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 1s steps(6) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:49;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.6) 100%)}
+
+#stageWrap{position:relative;z-index:2}
+#stage{position:absolute;left:0;top:0;width:760px;height:720px;transform-origin:0 0}
+/* desk surface extends beyond the stage */
+#stage::before{content:"";position:absolute;left:-3000px;right:-3000px;top:474px;height:2000px;
+  background:linear-gradient(#2c1f15 0, #22170f 40px, #170f0a 100%);
+  border-top:2px solid #4a3827;box-shadow:0 -10px 30px rgba(0,0,0,.5)}
+
+/* ---------- DECK ---------- */
+#deck{position:absolute;left:0;top:0;width:760px;height:460px;border-radius:24px;z-index:1;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0) 18%),
+    linear-gradient(160deg, var(--beige), var(--beige-d));
+  box-shadow:0 22px 40px rgba(0,0,0,.65), inset 0 0 0 2px rgba(0,0,0,.25), inset 0 -8px 0 rgba(0,0,0,.18)}
+#deck::after{content:"";position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:repeating-linear-gradient(90deg, rgba(0,0,0,.025) 0 2px, transparent 2px 5px);mix-blend-mode:multiply}
+.screw{position:absolute;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #cfc2a0, #6f6448);box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+.screw::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:rgba(0,0,0,.5);transform:rotate(35deg)}
+
+#head{position:absolute;left:28px;right:28px;top:16px;height:48px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:baseline;gap:12px;color:#2a241a}
+.brand b{font:800 26px/1 var(--mono);letter-spacing:.18em}
+.brand i{font:600 13px/1 var(--mono);font-style:normal;letter-spacing:.2em;opacity:.7}
+.brand em{font:700 11px/1 var(--mono);font-style:normal;letter-spacing:.2em;border:1.5px solid #2a241a;padding:3px 6px;border-radius:3px;opacity:.75}
+.lamps{display:flex;align-items:center;gap:18px}
+.lamp{display:flex;align-items:center;gap:6px;font:700 10px/1 var(--mono);letter-spacing:.18em;color:#3a3223}
+.lamp span{width:12px;height:12px;border-radius:50%;background:#4a1612;box-shadow:inset 0 1px 2px rgba(0,0,0,.6),0 0 0 2px rgba(0,0,0,.2)}
+.lamp.rec span{background:#7a1a14;animation:rec 2.4s ease-in-out infinite}
+@keyframes rec{0%,100%{background:#4a1612;box-shadow:inset 0 1px 2px rgba(0,0,0,.6),0 0 0 2px rgba(0,0,0,.2)}50%{background:var(--red);box-shadow:0 0 12px var(--red),0 0 0 2px rgba(0,0,0,.2)}}
+.lamp.sig span{background:#12301c}
+body.solved .lamp.sig span{background:var(--green);box-shadow:0 0 12px var(--green),0 0 0 2px rgba(0,0,0,.2)}
+#snd{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;font:700 10px/1 var(--mono);letter-spacing:.18em;color:#3a3223;padding:6px 8px;border-radius:4px;border:1.5px solid rgba(42,36,26,.55)}
+#snd .dot{width:10px;height:10px;border-radius:50%;background:#12301c;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+#snd[aria-pressed="true"] .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+#snd:focus-visible,.key:focus-visible,#tape:focus-visible,.spine:focus-visible,.nub:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+
+/* bay */
+#bay{position:absolute;left:26px;top:76px;width:360px;height:224px;border-radius:12px;
+  background:linear-gradient(#0c0b09,#17150f);box-shadow:inset 0 6px 14px rgba(0,0,0,.9), 0 0 0 4px var(--face), 0 0 0 6px rgba(0,0,0,.35)}
+#bay::before{content:"";position:absolute;left:22px;right:22px;bottom:8px;height:22px;border-radius:4px;
+  background:repeating-linear-gradient(90deg,#26231c 0 10px,#1b1913 10px 20px)}
+#door{position:absolute;left:26px;top:76px;width:360px;height:224px;border-radius:12px;z-index:3;pointer-events:none;
+  transform-origin:50% 0;transform:scaleY(.16);transition:transform .55s cubic-bezier(.4,.1,.2,1);
+  background:
+    linear-gradient(115deg, rgba(255,255,255,.18) 0 18%, transparent 18% 100%),
+    linear-gradient(180deg, rgba(40,52,46,.55), rgba(10,16,12,.72));
+  box-shadow:inset 0 0 0 3px rgba(0,0,0,.55), inset 0 0 22px rgba(0,0,0,.6)}
+#door.closed{transform:scaleY(1)}
+#door::after{content:"PUSH";position:absolute;right:14px;bottom:8px;font:700 10px/1 var(--mono);letter-spacing:.3em;color:rgba(255,255,255,.28)}
+
+/* LCD */
+#lcd{position:absolute;left:402px;top:76px;width:332px;height:224px;border-radius:12px;overflow:hidden;
+  background:var(--lcd);box-shadow:inset 0 0 0 3px #0d0d0b, inset 0 0 40px rgba(0,0,0,.9), 0 0 0 4px var(--face), 0 0 0 6px rgba(0,0,0,.35)}
+#lcd::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:repeating-linear-gradient(180deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);}
+#lcd::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 40%, rgba(77,255,136,.12), transparent 70%),radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%)}
+#lcdStatus{position:absolute;left:14px;right:14px;top:8px;display:flex;justify-content:space-between;font:22px/1 var(--lcdfont);color:var(--green-d);letter-spacing:.08em;border-bottom:1px solid #123a21;padding-bottom:4px}
+#lcdStatus b{font-weight:400;color:var(--green);text-shadow:0 0 6px rgba(77,255,136,.7)}
+#lcdLines{position:absolute;left:14px;right:14px;top:40px;bottom:10px;overflow:hidden;font:25px/1.12 var(--lcdfont);color:var(--green);
+  text-shadow:0 0 7px rgba(77,255,136,.65);letter-spacing:.04em;display:flex;flex-direction:column;justify-content:flex-end;animation:flick 6s infinite}
+#lcdLines .ln{white-space:pre;min-height:1.12em}
+#lcdLines .ln:last-child::after{content:"_";animation:blink 1s steps(1) infinite}
+#lcdLines a{color:var(--amber);text-shadow:0 0 7px rgba(255,176,0,.7);text-decoration:none;pointer-events:auto;cursor:pointer;user-select:text}
+#lcdLines a:hover,#lcdLines a:focus-visible{background:var(--amber);color:#1a1100;text-shadow:none;outline:none}
+#lcdLines .dim{color:var(--green-d);text-shadow:none}
+@keyframes blink{50%{opacity:0}}
+@keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.82}98%{opacity:1}99%{opacity:.9}}
+
+/* row 3 */
+#row3{position:absolute;left:28px;right:28px;top:312px;height:48px;display:flex;align-items:center;gap:20px}
+#counter{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:var(--face);box-shadow:inset 0 2px 4px rgba(0,0,0,.7)}
+#counter small{font:700 9px/1.1 var(--mono);letter-spacing:.14em;color:#a89a78;width:50px}
+#digits{display:flex;gap:3px}
+#digits span{width:26px;height:36px;border-radius:3px;display:flex;align-items:center;justify-content:center;
+  font:700 26px/1 var(--mono);color:#f0ead8;background:linear-gradient(#0c0c0b 0,#2a2a28 48%,#0c0c0b 100%);box-shadow:inset 0 0 0 1px #000}
+.nub{all:unset;cursor:pointer;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8d8575,#3b372d);box-shadow:0 2px 0 #1a1812,inset 0 0 0 1px rgba(0,0,0,.5)}
+.nub:active{transform:translateY(2px);box-shadow:none}
+body.hint2 #counter{animation:hintpulse 1.6s ease-in-out infinite}
+@keyframes hintpulse{50%{box-shadow:inset 0 2px 4px rgba(0,0,0,.7),0 0 0 3px rgba(255,176,0,.75),0 0 18px rgba(255,176,0,.55)}}
+#vu{flex:1;display:grid;grid-template-columns:18px 1fr;row-gap:6px;column-gap:8px;align-items:center;padding:6px 10px;border-radius:6px;background:var(--face);box-shadow:inset 0 2px 4px rgba(0,0,0,.7)}
+#vu b{font:700 10px/1 var(--mono);color:#a89a78;letter-spacing:.1em}
+.leds{display:flex;gap:3px}
+.leds i{flex:1;height:9px;border-radius:2px;background:#1b3524}
+.leds i.on{background:var(--green);box-shadow:0 0 6px rgba(77,255,136,.8)}
+.leds i.hot{background:#3a1d12}
+.leds i.hot.on{background:var(--amber);box-shadow:0 0 6px rgba(255,176,0,.8)}
+.leds i.red{background:#3b1410}
+.leds i.red.on{background:var(--red);box-shadow:0 0 6px rgba(255,59,47,.9)}
+#knob{width:48px;height:48px;border-radius:50%;flex:none;background:conic-gradient(from 20deg,#4a463c,#1c1a15,#4a463c,#1c1a15,#4a463c);box-shadow:0 3px 0 #11100c,inset 0 0 0 3px #26241e,inset 0 0 0 5px #5e594b;position:relative}
+#knob::after{content:"";position:absolute;left:22px;top:6px;width:4px;height:14px;border-radius:2px;background:var(--beige);transform-origin:2px 18px;transform:rotate(-40deg)}
+
+/* keys */
+#keys{position:absolute;left:28px;right:28px;top:374px;height:68px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.key{all:unset;cursor:pointer;position:relative;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  background:linear-gradient(#4a4842,#2b2a26);box-shadow:0 7px 0 #0f0e0c,0 10px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.18);
+  color:#e8e0c8;transition:transform .06s, box-shadow .06s;touch-action:none}
+.key svg{width:26px;height:20px;fill:currentColor}
+.key span{font:700 9px/1 var(--mono);letter-spacing:.2em;opacity:.8}
+.key:active,.key.on{transform:translateY(6px);box-shadow:0 1px 0 #0f0e0c,0 3px 6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1)}
+.key.play::before{content:"";position:absolute;left:14px;right:14px;top:6px;height:3px;border-radius:2px;background:var(--amber);opacity:.9}
+.key.on{color:var(--amber)}
+
+/* ---------- TAPE ---------- */
+#tape{all:unset;position:absolute;left:30px;top:490px;width:336px;height:212px;z-index:2;cursor:pointer;
+  transition:left .75s cubic-bezier(.3,.7,.3,1), top .75s cubic-bezier(.3,.7,.3,1), transform .75s cubic-bezier(.3,.7,.3,1), filter .3s;
+  transform:rotate(-3deg);filter:drop-shadow(0 12px 10px rgba(0,0,0,.7)) saturate(.9) sepia(.12)}
+#tape:hover{transform:rotate(-2deg) translateY(-3px)}
+#tape.in-bay{left:38px;top:82px;transform:none;pointer-events:none;filter:none}
+#tape svg{display:block;width:336px;height:212px}
+#tape text{font-family:var(--mono);font-weight:700;fill:#2b2218;letter-spacing:.08em}
+.morse{transition:filter .4s}
+body.hint1 #tape:not(.in-bay) .morse,body.hint1 #tape .morse{filter:drop-shadow(0 0 2px #ff9a00) drop-shadow(0 0 6px #ff9a00);animation:hintink 1.8s ease-in-out infinite}
+@keyframes hintink{50%{opacity:.55}}
+body:not(.touched) #tape:not(.in-bay){animation:bob 3.4s ease-in-out infinite}
+@keyframes bob{50%{transform:rotate(-3deg) translateY(-4px)}}
+
+/* ---------- SHELF ---------- */
+#shelf{position:absolute;left:420px;top:492px;width:318px;height:208px;display:grid;grid-template-columns:repeat(9,1fr);grid-auto-rows:1fr;gap:6px 4px;
+  padding:10px 8px;border-radius:6px;background:linear-gradient(#120c07,#1c130c);box-shadow:inset 0 3px 10px rgba(0,0,0,.8), 0 0 0 2px #3a2a1c}
+.spine{all:unset;cursor:pointer;position:relative;border-radius:2px;
+  background:linear-gradient(90deg,#2b2a25,#1c1b17 50%,#2b2a25);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6);transition:filter .2s}
+.spine::before{content:"";position:absolute;left:3px;right:3px;top:6px;height:46%;background:#3a372d;border-radius:1px;opacity:.7}
+.spine::after{content:"";position:absolute;left:3px;right:3px;bottom:6px;height:5px;background:#1c1b17;border-radius:1px}
+.spine:hover{filter:brightness(1.5)}
+.spine.gap{background:transparent;box-shadow:inset 0 0 0 1px #3a2a1c;border:1px dashed #4a3827}
+.spine.gap::before,.spine.gap::after{display:none}
+body.solved .spine.gap{background:linear-gradient(90deg,#6b4a12,#ffb000 50%,#6b4a12);border:0;box-shadow:0 0 14px rgba(255,176,0,.55)}
+body.solved .spine.gap::before{display:block;background:#f0e7cf;opacity:.9}
+body.solved .spine.gap::after{display:block;background:#7a5314}
+
+/* misc */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#foot{position:fixed;left:0;right:0;bottom:8px;text-align:center;font:10px/1 var(--mono);letter-spacing:.3em;color:rgba(214,201,170,.28);z-index:3;pointer-events:none}
+noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:var(--green);font:20px var(--mono);z-index:60;background:var(--bg);text-align:center;padding:24px}
+@media (prefers-reduced-motion: reduce){
+  .grain{animation:none}#lcdLines{animation:none}.lamp.rec span{animation:none;background:#a3241b}
+  body:not(.touched) #tape:not(.in-bay){animation:none}#dust{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="dust" aria-hidden="true"></canvas>
+
+<main id="stageWrap">
+  <div id="stage">
+
+    <section id="deck" aria-label="Cassette player">
+      <i class="screw" style="left:10px;top:10px"></i><i class="screw" style="right:10px;top:10px"></i>
+      <i class="screw" style="left:10px;bottom:10px"></i><i class="screw" style="right:10px;bottom:10px"></i>
+
+      <div id="head">
+        <div class="brand"><b>OLD FUTURE</b><i>낡은 미래</i><em>MODEL 7</em></div>
+        <div class="lamps">
+          <div class="lamp rec"><span></span>REC</div>
+          <div class="lamp sig"><span></span>SIG</div>
+          <button id="snd" type="button" aria-pressed="true" aria-label="Sound"><i class="dot"></i>SND</button>
+        </div>
+      </div>
+
+      <div id="bay" aria-hidden="true"></div>
+
+      <div id="lcd" role="log" aria-live="polite" aria-label="Tape log">
+        <div id="lcdStatus"><b id="stMode">NO TAPE</b><span id="stSide">STATION 7</span></div>
+        <div id="lcdLines"></div>
+      </div>
+
+      <div id="row3">
+        <div id="counter"><small>TAPE<br>COUNTER</small><div id="digits"><span>0</span><span>0</span><span>0</span></div><button class="nub" id="reset" type="button" aria-label="Reset counter"></button></div>
+        <div id="vu" aria-hidden="true">
+          <b>L</b><div class="leds" id="vuL"></div>
+          <b>R</b><div class="leds" id="vuR"></div>
+        </div>
+        <div id="knob" aria-hidden="true"></div>
+      </div>
+
+      <div id="keys">
+        <button class="key" id="kEject" type="button" aria-label="Eject"><svg viewBox="0 0 26 20"><path d="M13 2l9 9H4z"/><rect x="4" y="14" width="18" height="4"/></svg><span>EJECT</span></button>
+        <button class="key" id="kRew" type="button" aria-label="Rewind"><svg viewBox="0 0 26 20"><path d="M13 3v14L3 10zM24 3v14L14 10z"/></svg><span>REW</span></button>
+        <button class="key play" id="kPlay" type="button" aria-label="Play"><svg viewBox="0 0 26 20"><path d="M6 2v16l15-8z"/></svg><span>PLAY</span></button>
+        <button class="key" id="kFf" type="button" aria-label="Fast forward"><svg viewBox="0 0 26 20"><path d="M2 3v14l10-7zM13 3v14l10-7z"/></svg><span>FF</span></button>
+        <button class="key" id="kStop" type="button" aria-label="Stop"><svg viewBox="0 0 26 20"><rect x="5" y="3" width="16" height="14"/></svg><span>STOP</span></button>
+      </div>
+    </section>
+
+    <div id="door"></div>
+    <button id="tape" type="button" aria-label="Cassette tape"></button>
+    <div id="shelf" role="group" aria-label="Tape shelf"></div>
+
+  </div>
+</main>
+
+<div class="sr">
+  <h1>OLD FUTURE | MIA-027</h1>
+  <p>Station 7 is still transmitting. No reply.</p>
+  <ul id="srLinks"></ul>
+</div>
+<div id="foot">STATION 7</div>
+<div class="vignette"></div>
+<div class="grain"></div>
+<noscript>STATION 7<br>SIGNAL REQUIRES JAVASCRIPT</noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* =========================================================
+   CONFIG — edit here
+   ========================================================= */
+const CONFIG = {
+  code: '027',            // the answer. Shown on the tape label as Morse code.
+  tapeEnd: 120,           // counter value where the tape runs out
+  links: {                // revealed on the LCD after the transmission ends
+    instagram: '',        // e.g. 'https://www.instagram.com/mia.027'
+    youtube:   ''         // e.g. 'https://www.youtube.com/@oldfuture'
+  },
+  storageKey: 'oldfuture.solved.v1',
+  hintAfterSec: [60, 120, 200]   // seconds without progress -> hint level 1, 2, 3
+};
+
+const MORSE = {'0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.'};
+const TARGET = parseInt(CONFIG.code, 10);
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const S = {
+  inserted:false, busy:false,
+  mode:'stop',            // stop | play | ff | rew
+  counter:0, holdT:0,
+  solved:false, transmitting:false, scene:0, stopPad:null,
+  stuckSince:performance.now(), hint3:false,
+  vu:[0,0], reel:0
+};
+try { S.solved = localStorage.getItem(CONFIG.storageKey) === '1'; } catch(e){}
+if (location.search.includes('reset')) { S.solved = false; try { localStorage.removeItem(CONFIG.storageKey); } catch(e){} }
+
+/* =========================================================
+   STAGE SCALING
+   ========================================================= */
+const wrap = $('#stageWrap'), stage = $('#stage');
+function fit(){
+  const s = Math.min((innerWidth - 20) / 760, (innerHeight - 36) / 720, 1.3);
+  wrap.style.width = 760 * s + 'px';
+  wrap.style.height = 720 * s + 'px';
+  stage.style.transform = `scale(${s})`;
+}
+addEventListener('resize', fit); fit();
+
+/* =========================================================
+   AUDIO (all synthesized — no files)
+   ========================================================= */
+const A = { ctx:null, muted:false };
+function noiseSrc(){ const s = A.ctx.createBufferSource(); s.buffer = A.noise; s.loop = true; s.start(); return s; }
+function ensureAudio(){
+  if (A.ctx){ if (A.ctx.state === 'suspended') A.ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  const c = A.ctx = new AC();
+  A.master = c.createGain(); A.master.gain.value = A.muted ? 0 : .7;
+  A.an = c.createAnalyser(); A.an.fftSize = 512; A.data = new Uint8Array(A.an.fftSize);
+  A.master.connect(A.an); A.an.connect(c.destination);
+  const len = c.sampleRate * 2, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  A.noise = buf;
+  // room tone
+  const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650;
+  const rg = c.createGain(); rg.gain.value = .03; noiseSrc().connect(lp).connect(rg).connect(A.master);
+  // tape hiss
+  const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2400;
+  A.hiss = c.createGain(); A.hiss.gain.value = 0; noiseSrc().connect(hp).connect(A.hiss).connect(A.master);
+  // motor hum with wow
+  const hum = c.createOscillator(); hum.frequency.value = 58;
+  const lfo = c.createOscillator(); lfo.frequency.value = .6;
+  const lg = c.createGain(); lg.gain.value = 1.4; lfo.connect(lg).connect(hum.frequency);
+  A.hum = c.createGain(); A.hum.gain.value = 0; hum.connect(A.hum).connect(A.master); hum.start(); lfo.start();
+  // fast wind whir
+  A.whirO = c.createOscillator(); A.whirO.type = 'sawtooth'; A.whirO.frequency.value = 140;
+  const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 1.2;
+  A.whir = c.createGain(); A.whir.gain.value = 0; A.whirO.connect(bp).connect(A.whir).connect(A.master); A.whirO.start();
+}
+function burst(freq, dur, vol, type='bandpass'){
+  if (!A.ctx) return; const c = A.ctx, t = c.currentTime;
+  const s = c.createBufferSource(); s.buffer = A.noise; s.loop = true;
+  const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = .8;
+  const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(f).connect(g).connect(A.master); s.start(t); s.stop(t + dur + .05);
+}
+function thump(freq, dur, vol){
+  if (!A.ctx) return; const c = A.ctx, t = c.currentTime;
+  const o = c.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * .55, t + dur);
+  const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(A.master); o.start(t); o.stop(t + dur + .05);
+}
+const sfx = {
+  click(){ burst(1800, .03, .35); thump(150, .07, .35); },
+  thunk(){ burst(380, .14, .6, 'lowpass'); thump(70, .2, .6); },
+  slide(){ burst(900, .45, .12); },
+  dropout(){ burst(3000, .25, .22, 'highpass'); },
+  bip(f=720){ if (!A.ctx) return; const c = A.ctx, t = c.currentTime, o = c.createOscillator(); o.frequency.value = f;
+    const g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.07, t + .005); g.gain.exponentialRampToValueAtTime(.0001, t + .07);
+    o.connect(g).connect(A.master); o.start(t); o.stop(t + .1); }
+};
+function setTransportSound(){
+  if (!A.ctx) return; const t = A.ctx.currentTime, m = S.mode;
+  const to = (p, v) => p.setTargetAtTime(v, t, .06);
+  to(A.hiss.gain, m === 'play' ? .04 : (m === 'stop' ? 0 : .018));
+  to(A.hum.gain, m === 'stop' ? 0 : .035);
+  to(A.whir.gain, (m === 'ff' || m === 'rew') ? .05 : 0);
+}
+function startPad(){
+  if (!A.ctx) return () => {};
+  const c = A.ctx, g = c.createGain(); g.gain.value = 0; g.connect(A.master);
+  const trem = c.createGain(); trem.gain.value = 1; trem.connect(g);
+  const lfo = c.createOscillator(); lfo.frequency.value = .13; const lg = c.createGain(); lg.gain.value = .35; lfo.connect(lg).connect(trem.gain); lfo.start();
+  const oscs = [110, 164.81, 220, 261.63].map((f, i) => { const o = c.createOscillator(); o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = f; o.detune.value = (i - 1.5) * 5; o.connect(trem); o.start(); return o; });
+  g.gain.setTargetAtTime(.06, c.currentTime, 1.6);
+  return () => { const t = c.currentTime; g.gain.setTargetAtTime(0, t, .6); setTimeout(() => { oscs.forEach(o => { try { o.stop(); } catch(e){} }); try { lfo.stop(); } catch(e){} }, 2500); };
+}
+function level(){
+  if (A.ctx && !A.muted){
+    A.an.getByteTimeDomainData(A.data); let s = 0;
+    for (const v of A.data){ const x = (v - 128) / 128; s += x * x; }
+    return clamp(Math.sqrt(s / A.data.length) * 6, 0, 1);
+  }
+  return S.transmitting ? .45 + Math.random() * .3 : S.mode === 'play' ? .15 + Math.random() * .15 : (S.mode === 'stop' ? 0 : .08);
+}
+
+/* =========================================================
+   LCD
+   ========================================================= */
+const lcdLines = $('#lcdLines'), MAXL = 6;
+function newLine(cls){
+  const d = document.createElement('div'); d.className = 'ln' + (cls ? ' ' + cls : ''); lcdLines.appendChild(d);
+  while (lcdLines.children.length > MAXL) lcdLines.removeChild(lcdLines.firstChild);
+  return d;
+}
+async function lcdPrint(text, o = {}){
+  const { speed = 22, scene = null, cls = '' } = o, d = newLine(cls);
+  for (const ch of text){
+    if (scene !== null && scene !== S.scene) return false;
+    d.textContent += ch; await sleep(speed);
+  }
+  return true;
+}
+function sys(text){ if (S.transmitting) return; lcdPrint(text, { speed: 12 }); }
+function lcdLink(label, url){
+  const d = newLine();
+  if (url){ const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '> ' + label; d.appendChild(a); }
+  else { d.textContent = '> ' + label + ': PENDING'; d.classList.add('dim'); }
+}
+function showLinks(){ lcdLink('INSTAGRAM', CONFIG.links.instagram); lcdLink('YOUTUBE', CONFIG.links.youtube); }
+
+/* =========================================================
+   TAPE ART (label carries the Morse code)
+   ========================================================= */
+function buildTape(){
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  let x = 0, ink = '';
+  [...CONFIG.code].forEach((digit, di) => {
+    if (di) x += 22;
+    [...MORSE[digit]].forEach(sym => {
+      const y = rnd(-.8, .8);
+      if (sym === '.'){ ink += `<circle cx="${(x + 3.5).toFixed(1)}" cy="${(y + 2).toFixed(1)}" r="${rnd(3.1, 3.8).toFixed(1)}"/>`; x += 11; }
+      else { ink += `<rect x="${x.toFixed(1)}" y="${(y - .2).toFixed(1)}" width="${rnd(12.5, 14.5).toFixed(1)}" height="${rnd(4.3, 5).toFixed(1)}" rx="2.2" transform="rotate(${rnd(-2, 2).toFixed(1)} ${x + 7} 2)"/>`; x += 19; }
+    });
+  });
+  const tx = (292 - x) / 2 + 22;
+  const spokes = [0, 60, 120, 180, 240, 300].map(a => `<rect x="-2" y="-12" width="4" height="8" fill="#2a251c" transform="rotate(${a})"/>`).join('');
+  const reel = (cx, id) => `<g transform="translate(${cx} 158)"><circle class="pack" id="pack${id}" r="26" fill="#3b2b20"/><g class="spin" id="spin${id}"><circle r="13" fill="#ece4cc"/>${spokes}<circle r="4" fill="#2a251c"/></g></g>`;
+  $('#tape').innerHTML = `
+  <svg viewBox="0 0 336 212" aria-hidden="true">
+    <defs>
+      <linearGradient id="tb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ddd0b2"/><stop offset="1" stop-color="#b3a37f"/></linearGradient>
+      <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset=".4" stop-color="rgba(255,255,255,0)"/></linearGradient>
+    </defs>
+    <rect x="2" y="2" width="332" height="208" rx="14" fill="url(#tb)" stroke="#6a5f43" stroke-width="2"/>
+    <rect x="22" y="14" width="292" height="104" rx="5" fill="#f1e8cf" stroke="#9a8e6e"/>
+    <rect x="22" y="14" width="292" height="11" rx="5" fill="#c8481f"/><rect x="22" y="25" width="292" height="5" fill="#e29a2b"/>
+    <text x="30" y="46" font-size="11">STATION 7</text>
+    <text x="306" y="46" font-size="11" text-anchor="end">SIDE A</text>
+    <text x="30" y="64" font-size="9" opacity=".75">OPERATOR</text>
+    <path d="M86 62 q4 -9 8 0 t8 0 t8 0 t8 0 t8 0 t8 0 M86 58 q4 -9 8 0 t8 0 t8 0 t8 0 t8 0 t8 0" stroke="#1d1712" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".92"/>
+    <line x1="30" y1="104" x2="306" y2="104" stroke="#bdb192"/><line x1="30" y1="84" x2="306" y2="84" stroke="#d7cdb0"/>
+    <g class="morse" fill="#1d1712" transform="translate(${tx.toFixed(1)} 86)">${ink}</g>
+    <path d="M70 128 h196 a10 10 0 0 1 10 10 v40 a10 10 0 0 1 -10 10 h-196 a10 10 0 0 1 -10 -10 v-40 a10 10 0 0 1 10 -10z" fill="#1a1813" stroke="#0a0907" stroke-width="2"/>
+    ${reel(110, 'L')}${reel(226, 'R')}
+    <rect x="144" y="150" width="48" height="16" rx="3" fill="#0f0e0b" opacity=".6"/>
+    <path d="M86 204 h164 l-10 -14 h-144z" fill="#9b8c68" opacity=".75"/>
+    <circle cx="14" cy="14" r="4" fill="#85795a"/><circle cx="322" cy="14" r="4" fill="#85795a"/><circle cx="14" cy="198" r="4" fill="#85795a"/><circle cx="322" cy="198" r="4" fill="#85795a"/>
+    <rect x="2" y="2" width="332" height="208" rx="14" fill="url(#tg)"/>
+  </svg>`;
+}
+buildTape();
+const packL = $('#packL'), packR = $('#packR'), spinL = $('#spinL'), spinR = $('#spinR');
+
+/* =========================================================
+   SHELF — 27 slots, 26 empty tapes and one gap
+   ========================================================= */
+const shelf = $('#shelf');
+for (let i = 1; i <= 27; i++){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'spine' + (i === 27 ? ' gap' : '');
+  b.setAttribute('aria-label', i === 27 ? 'Tape slot' : 'Tape slot, empty');
+  b.addEventListener('click', () => {
+    ensureAudio(); touch();
+    if (i === 27){ sfx.click(); sys(S.solved ? 'LOGGED' : 'EMPTY SLOT'); }
+    else { sfx.dropout(); sys('NO CONTACT'); }
+  });
+  shelf.appendChild(b);
+}
+
+/* =========================================================
+   LEDs
+   ========================================================= */
+const LED_N = 16;
+['#vuL', '#vuR'].forEach(id => { const el = $(id); for (let i = 0; i < LED_N; i++){ const l = document.createElement('i'); if (i >= 10) l.className = 'hot'; if (i >= 14) l.className = 'red'; el.appendChild(l); } });
+const ledsL = [...$('#vuL').children], ledsR = [...$('#vuR').children];
+
+/* =========================================================
+   TRANSPORT
+   ========================================================= */
+const tape = $('#tape'), door = $('#door');
+const keyEl = { play:$('#kPlay'), ff:$('#kFf'), rew:$('#kRew') };
+function touch(){ document.body.classList.add('touched'); }
+function progress(){ S.stuckSince = performance.now(); }
+
+function insert(){
+  ensureAudio(); touch();
+  if (S.inserted || S.busy) return;
+  S.busy = true; sfx.click(); sfx.slide();
+  tape.classList.add('in-bay');
+  setTimeout(() => { door.classList.add('closed'); sfx.thunk(); }, 720);
+  setTimeout(() => {
+    S.inserted = true; S.busy = false; progress();
+    lcdLines.innerHTML = ''; sys('TAPE LOADED');
+  }, 1100);
+}
+function eject(){
+  ensureAudio(); touch(); sfx.click();
+  if (!S.inserted || S.busy) return;
+  stopTransport(); S.busy = true;
+  door.classList.remove('closed'); sfx.thunk();
+  setTimeout(() => { tape.classList.remove('in-bay'); sfx.slide(); }, 520);
+  setTimeout(() => { S.inserted = false; S.busy = false; lcdLines.innerHTML = ''; sys('NO TAPE'); }, 1250);
+}
+function stopTransport(msg){
+  S.mode = 'stop'; S.scene++; S.transmitting = false; S.holdT = 0;
+  if (S.stopPad){ S.stopPad(); S.stopPad = null; }
+  setTransportSound(); if (msg) sys(msg);
+}
+function onStop(){ ensureAudio(); touch(); sfx.click(); const was = S.mode !== 'stop'; stopTransport(was ? 'STOP' : null); }
+function onPlay(){
+  ensureAudio(); touch(); sfx.click();
+  if (!S.inserted){ sys('NO TAPE'); return; }
+  if (S.transmitting) return;
+  S.mode = 'play'; S.holdT = 0; setTransportSound();
+  if (Math.round(S.counter) === TARGET) runTransmission();
+  else sys('NO SIGNAL');
+}
+/* FF / REW: tap = nudge by one, hold = wind */
+const hold = { dir:0, timer:null, running:false };
+function holdStart(dir, e){
+  if (e && e.pointerId !== undefined) { try { e.currentTarget.setPointerCapture(e.pointerId); } catch(_){} }
+  if (hold.dir) return;
+  ensureAudio(); touch(); sfx.click();
+  if (!S.inserted){ sys('NO TAPE'); return; }
+  hold.dir = dir; hold.running = false;
+  hold.timer = setTimeout(() => {
+    hold.running = true;
+    if (S.transmitting) stopTransport();
+    S.mode = dir > 0 ? 'ff' : 'rew'; S.holdT = 0; setTransportSound();
+  }, 220);
+}
+function holdEnd(){
+  if (!hold.dir) return;
+  clearTimeout(hold.timer);
+  if (hold.running){ S.mode = 'stop'; setTransportSound(); }
+  else {
+    if (S.transmitting) stopTransport();
+    S.counter = clamp(Math.round(S.counter) + hold.dir, 0, CONFIG.tapeEnd); burst(2400, .02, .25);
+  }
+  hold.dir = 0; hold.running = false;
+}
+function bindHold(el, dir){
+  el.addEventListener('pointerdown', e => { e.preventDefault(); holdStart(dir, e); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => el.addEventListener(ev, holdEnd));
+  el.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat){ e.preventDefault(); holdStart(dir); } });
+  el.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); holdEnd(); } });
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
+bindHold($('#kFf'), 1); bindHold($('#kRew'), -1);
+$('#kPlay').addEventListener('click', onPlay);
+$('#kStop').addEventListener('click', onStop);
+$('#kEject').addEventListener('click', eject);
+tape.addEventListener('click', insert);
+$('#reset').addEventListener('click', () => { ensureAudio(); touch(); sfx.click(); if (S.transmitting) stopTransport(); S.counter = 0; });
+$('#snd').addEventListener('click', e => {
+  ensureAudio(); A.muted = !A.muted; e.currentTarget.setAttribute('aria-pressed', String(!A.muted));
+  if (A.ctx) A.master.gain.setTargetAtTime(A.muted ? 0 : .7, A.ctx.currentTime, .05);
+  if (!A.muted) sfx.click();
+});
+addEventListener('pointerdown', () => ensureAudio(), { capture:true });
+
+/* =========================================================
+   THE TRANSMISSION (what the tape recorded)
+   ========================================================= */
+const LOG = [
+  'STATION 7',
+  'OPERATOR 027 OF 27',
+  'OPERATORS 001-026:',
+  '  NO CONTACT',
+  'BATTERY: 62%',
+  'DATE: --/--/----',
+  'NO REPLY'
+];
+async function runTransmission(){
+  const id = ++S.scene; S.transmitting = true;
+  S.stopPad = startPad();
+  lcdLines.innerHTML = '';
+  const alive = () => id === S.scene;
+  await sleep(900); if (!alive()) return;
+  sfx.bip(520); if (!await lcdPrint('SIGNAL FOUND', { scene:id, speed:34 })) return;
+  await sleep(1500); if (!alive()) return;
+  lcdLines.innerHTML = '';
+  for (const line of LOG){
+    sfx.bip(line.startsWith(' ') ? 440 : 720);
+    if (!await lcdPrint(line, { scene:id, speed:40 })) return;
+    await sleep(1500 + Math.random() * 700); if (!alive()) return;
+  }
+  await sleep(1200); if (!alive()) return;
+  sfx.bip(300);
+  if (!await lcdPrint('END OF TAPE', { scene:id, speed:50 })) return;
+  await sleep(1400); if (!alive()) return;
+  if (S.stopPad){ S.stopPad(); S.stopPad = null; }
+  S.mode = 'stop'; S.transmitting = false; setTransportSound();
+  markSolved(true);
+  await sleep(600);
+  lcdLines.innerHTML = ''; await lcdPrint('SIGNAL LOGGED', { speed:30 });
+  await sleep(500); showLinks();
+}
+function markSolved(fresh){
+  if (S.solved && !fresh) return;
+  S.solved = true; progress();
+  try { localStorage.setItem(CONFIG.storageKey, '1'); } catch(e){}
+  document.body.classList.add('solved'); document.body.classList.remove('hint1', 'hint2');
+}
+
+/* =========================================================
+   HINTS (non-verbal: the ink glows, then the counter pulses)
+   ========================================================= */
+setInterval(() => {
+  if (S.solved || S.transmitting) return;
+  const t = (performance.now() - S.stuckSince) / 1000, h = CONFIG.hintAfterSec;
+  document.body.classList.toggle('hint1', t >= h[0]);
+  document.body.classList.toggle('hint2', t >= h[1]);
+  if (t >= h[2] && !S.hint3){ S.hint3 = true; sys('CODE: MORSE'); }
+}, 1000);
+
+/* =========================================================
+   RENDER LOOP
+   ========================================================= */
+const digits = [...document.querySelectorAll('#digits span')];
+const stMode = $('#stMode');
+let last = performance.now(), lastDigits = '';
+function frame(now){
+  const dt = Math.min(.1, (now - last) / 1000); last = now;
+
+  if (S.inserted){
+    if (S.mode === 'play') S.counter += dt;
+    else if (S.mode === 'ff' || S.mode === 'rew'){
+      S.holdT += dt; S.counter += (S.mode === 'ff' ? 1 : -1) * Math.min(34, 5 + S.holdT * 11) * dt;
+    }
+    if (S.counter >= CONFIG.tapeEnd){ S.counter = CONFIG.tapeEnd; if (S.mode !== 'stop'){ const wasTx = S.transmitting; stopTransport(wasTx ? null : 'END OF TAPE'); } }
+    if (S.counter <= 0){ S.counter = 0; if (S.mode === 'rew'){ stopTransport('LEADER'); } }
+  }
+
+  // counter
+  const n = String(Math.round(S.counter)).padStart(3, '0');
+  if (n !== lastDigits){ digits.forEach((d, i) => d.textContent = n[i]); lastDigits = n; }
+
+  // reels
+  const speed = !S.inserted ? 0 : S.mode === 'play' ? 95 : S.mode === 'ff' ? 640 : S.mode === 'rew' ? -640 : 0;
+  S.reel = (S.reel + speed * dt) % 360;
+  const p = clamp(S.counter / CONFIG.tapeEnd, 0, 1);
+  if (spinL){
+    spinL.setAttribute('transform', `rotate(${S.reel})`); spinR.setAttribute('transform', `rotate(${S.reel * 1.15})`);
+    packL.setAttribute('r', (26 - 13 * p).toFixed(1)); packR.setAttribute('r', (13 + 13 * p).toFixed(1));
+  }
+
+  // keys + status
+  keyEl.play.classList.toggle('on', S.mode === 'play');
+  keyEl.ff.classList.toggle('on', S.mode === 'ff');
+  keyEl.rew.classList.toggle('on', S.mode === 'rew');
+  const label = !S.inserted ? 'NO TAPE' : ({ play:'PLAY', stop:'STOP', ff:'FF >>', rew:'<< REW' })[S.mode];
+  if (stMode.textContent !== label) stMode.textContent = label;
+
+  // VU
+  const lv = level();
+  for (let c = 0; c < 2; c++){
+    S.vu[c] += (clamp(lv * (c ? .92 : 1) + (Math.random() - .5) * .08, 0, 1) - S.vu[c]) * .35;
+    const on = Math.round(S.vu[c] * LED_N), arr = c ? ledsR : ledsL;
+    for (let i = 0; i < LED_N; i++) arr[i].classList.toggle('on', i < on);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+(async () => {
+  const sr = $('#srLinks');
+  [['Instagram', CONFIG.links.instagram], ['YouTube', CONFIG.links.youtube]].forEach(([n, u]) => { if (!u) return; const li = document.createElement('li'); li.innerHTML = `<a href="${u}">${n}</a>`; sr.appendChild(li); });
+  await sleep(500);
+  if (S.solved){
+    document.body.classList.add('solved');
+    await lcdPrint('STATION 7', { speed:30 }); await sleep(300);
+    await lcdPrint('SIGNAL LOGGED', { speed:30 }); await sleep(300); showLinks();
+  } else {
+    await lcdPrint('STATION 7', { speed:34 }); await sleep(450);
+    await lcdPrint('NO TAPE', { speed:34 });
+  }
+})();
+
+// debug / testing handle
+window.__oldfuture = { S, CONFIG, insert };
+
+/* dust motes */
+(() => {
+  const cv = $('#dust'); if (!cv || reduced) return; const g = cv.getContext('2d'); let W, H, P = [];
+  const size = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; };
+  size(); addEventListener('resize', size);
+  for (let i = 0; i < 46; i++) P.push({ x:Math.random(), y:Math.random(), r:Math.random() * 1.4 + .3, vx:(Math.random() - .5) * .012, vy:-Math.random() * .01 - .002, a:Math.random() * .5 + .1 });
+  (function loop(){
+    g.clearRect(0, 0, W, H);
+    for (const p of P){
+      p.x += p.vx * .016; p.y += p.vy * .016; if (p.y < -.02) { p.y = 1.02; p.x = Math.random(); } if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+      g.fillStyle = `rgba(255,214,150,${p.a * .45})`; g.beginPath(); g.arc(p.x * W, p.y * H, p.r, 0, 6.283); g.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+})();
+</script>
+</body>
+</html>
