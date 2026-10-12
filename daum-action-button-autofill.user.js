@@ -27,6 +27,10 @@
 
   // "액션 버튼" 라벨 아래의 입력란 2개(문구, 링크)를 찾는다
   function findFields() {
+    // 가장 확실한 방법: placeholder로 찾기
+    const t = document.querySelector('input[placeholder^="버튼명"]');
+    const u = document.querySelector('input[placeholder^="URL"]');
+    if (t && u) return { text: t, url: u };
     const label = [...document.querySelectorAll('label, strong, span, h3, h4, dt, p, div')]
       .find((n) => n.children.length === 0 && n.textContent.trim() === '액션 버튼');
     if (!label) return null;
@@ -50,7 +54,7 @@
   // ---- 작은 컨트롤 패널 ----
   const panel = document.createElement('div');
   panel.style.cssText =
-    'position:fixed;right:16px;bottom:16px;z-index:99999;background:#fff;border:1px solid #e2e5ea;' +
+    'position:fixed;right:16px;bottom:196px;z-index:99999;background:#fff;border:1px solid #e2e5ea;' +
     'border-radius:16px;padding:16px;font:14px -apple-system,"Segoe UI",sans-serif;color:#222;' +
     'box-shadow:0 4px 16px rgba(0,0,0,.12);width:280px;box-sizing:border-box';
   const field =
