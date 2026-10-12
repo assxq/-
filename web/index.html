@@ -12,7 +12,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0d0c'/%3E%3Crect x='4' y='9' width='24' height='15' rx='2' fill='%23d4c7a8'/%3E%3Ccircle cx='11' cy='16' r='3' fill='%230b0d0c'/%3E%3Ccircle cx='21' cy='16' r='3' fill='%230b0d0c'/%3E%3Ccircle cx='16' cy='5' r='2' fill='%23ff3b2f'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Caveat:wght@600&family=VT323&display=swap">
 <style>
 :root{
   --bg:#0b0d0c;
@@ -44,7 +44,7 @@ body{
   background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.6) 100%)}
 
 #stageWrap{position:relative;z-index:2}
-#stage{position:absolute;left:0;top:0;width:760px;height:720px;transform-origin:0 0}
+#stage{position:absolute;left:0;top:0;width:760px;height:770px;transform-origin:0 0}
 /* desk surface extends beyond the stage */
 #stage::before{content:"";position:absolute;left:-3000px;right:-3000px;top:474px;height:2000px;
   background:linear-gradient(#2c1f15 0, #22170f 40px, #170f0a 100%);
@@ -64,7 +64,7 @@ body{
 
 #head{position:absolute;left:28px;right:28px;top:16px;height:48px;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:baseline;gap:12px;color:#2a241a}
-.brand b{font:800 26px/1 var(--mono);letter-spacing:.18em}
+.brand b{font:400 29px/1 var(--stencil);letter-spacing:.12em}
 .brand i{font:600 13px/1 var(--mono);font-style:normal;letter-spacing:.2em;opacity:.7}
 .brand em{font:700 11px/1 var(--mono);font-style:normal;letter-spacing:.2em;border:1.5px solid #2a241a;padding:3px 6px;border-radius:3px;opacity:.75}
 .lamps{display:flex;align-items:center;gap:18px}
@@ -140,11 +140,38 @@ body.hint2 #counter{animation:hintpulse 1.6s ease-in-out infinite}
 .key{all:unset;cursor:pointer;position:relative;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
   background:linear-gradient(#4a4842,#2b2a26);box-shadow:0 7px 0 #0f0e0c,0 10px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.18);
   color:#e8e0c8;transition:transform .06s, box-shadow .06s;touch-action:none}
-.key svg{width:26px;height:20px;fill:currentColor}
-.key span{font:700 9px/1 var(--mono);letter-spacing:.2em;opacity:.8}
+.key svg{width:32px;height:32px}
+.key span{font:400 10px/1 var(--stencil);letter-spacing:.22em;opacity:.85}
 .key:active,.key.on{transform:translateY(6px);box-shadow:0 1px 0 #0f0e0c,0 3px 6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1)}
 .key.play::before{content:"";position:absolute;left:14px;right:14px;top:6px;height:3px;border-radius:2px;background:var(--amber);opacity:.9}
 .key.on{color:var(--amber)}
+
+
+/* ---------- INDUSTRIAL WEAR ---------- */
+:root{--stencil:"Allerta Stencil",Impact,"Arial Black",sans-serif;--hand:"Caveat","Segoe Script","Bradley Hand",cursive}
+#cables{position:absolute;left:-140px;top:-30px;width:1040px;height:830px;z-index:0;pointer-events:none;overflow:visible}
+.cab{fill:none;stroke:#120e0b;stroke-linecap:round}
+.cbh{fill:none;stroke:#4a3d31;stroke-linecap:round;opacity:.75}
+#deck .wear{position:absolute;inset:0;border-radius:24px;pointer-events:none;z-index:0;mix-blend-mode:multiply;opacity:.62;
+  box-shadow:inset 0 0 46px rgba(70,45,10,.42);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.28 .008' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .30 0 0 0 0 .22 0 0 0 0 .10 0 0 0 2.6 -1.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .22 0 0 0 0 .16 0 0 0 0 .08 0 0 0 3.2 -1.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")}
+.stencil{position:absolute;font:400 9px/1 var(--stencil);letter-spacing:.3em;color:#3a3223;opacity:.82;white-space:nowrap}
+.hazard{position:absolute;left:28px;right:28px;top:447px;height:8px;opacity:.82;
+  background:repeating-linear-gradient(-45deg,#1b1a15 0 9px,#c79a2b 9px 18px);box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.note{position:absolute;z-index:5;pointer-events:none;padding:4px 12px 5px;font:600 17px/1 var(--hand);color:#3a2a1c;white-space:nowrap;
+  background:linear-gradient(#e7d9ac,#d6c68e);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));
+  clip-path:polygon(0 10%,2% 0,6% 12%,11% 0,100% 0,99% 26%,100% 50%,98% 76%,100% 100%,93% 90%,87% 100%,81% 88%,0 100%,2% 62%,0 32%)}
+#tally{position:absolute;left:34px;top:724px;width:290px;height:40px;z-index:1;pointer-events:none;fill:none;stroke:#efe9d6;stroke-width:2.4;stroke-linecap:round;opacity:.5}
+
+/* LCD annunciator */
+#annun{display:flex;gap:6px;align-items:center}
+#annun svg{width:20px;height:20px;opacity:.17;transition:opacity .35s,filter .35s}
+#annun svg.on{opacity:1;filter:drop-shadow(0 0 4px currentColor)}
+#annun .k-tape,#annun .k-sig,#annun .k-bat{color:var(--green)}
+#annun .k-date{color:var(--amber)}
+#annun .k-con{color:var(--red)}
 
 /* ---------- TAPE ---------- */
 #tape{all:unset;position:absolute;left:30px;top:490px;width:336px;height:212px;z-index:2;cursor:pointer;
@@ -185,14 +212,45 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" stroke-linejoin="miter" stroke-linecap="butt">
+<symbol id="s7-play" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><path d="M19 15 L34 24 L19 33 Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-stop" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><rect x="16" y="16" width="16" height="16" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-rewind" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 16 V32 L14 24 Z M34 16 V32 L24 24 Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-fast-forward" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 16 V32 L24 24 Z M24 16 V32 L34 24 Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-eject" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 14 L35 26 H13 Z" fill="currentColor" stroke="none"/><rect x="13" y="29" width="22" height="5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-record" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="24" r="8" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-transmit" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 26 V36" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="22" r="2.8" fill="currentColor" stroke="none"/><path d="M28.24 17.76 A6 6 0 0 1 28.24 26.24 M19.76 17.76 A6 6 0 0 0 19.76 26.24 M31.78 14.22 A11 11 0 0 1 31.78 29.78 M16.22 14.22 A11 11 0 0 0 16.22 29.78" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+<symbol id="s7-receive" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 26 V36 M13 17 L19 22 L13 27 M35 17 L29 22 L35 27" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="22" r="2.8" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-battery" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="11" y="17" width="22" height="14" fill="none" stroke="currentColor" stroke-width="3"/><rect x="34" y="21" width="3" height="6" fill="currentColor" stroke="none"/><rect x="15" y="20.5" width="4" height="7" fill="currentColor" stroke="none"/><rect x="21" y="20.5" width="4" height="7" fill="currentColor" stroke="none"/><rect x="27" y="20.5" width="3" height="7" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-signal" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="12" y="30" width="5" height="5" fill="currentColor" stroke="none"/><rect x="19" y="25" width="5" height="10" fill="currentColor" stroke="none"/><rect x="26" y="20" width="5" height="15" fill="currentColor" stroke="none"/><rect x="33" y="15" width="5" height="20" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-tape" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="10" y="16" width="28" height="18" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="18" cy="25" r="3.2" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="30" cy="25" r="3.2" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+<symbol id="s7-archive" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="11" y="14" width="5" height="17" fill="currentColor" stroke="none"/><rect x="18.5" y="14" width="5" height="17" fill="currentColor" stroke="none"/><rect x="26" y="14" width="5" height="17" fill="currentColor" stroke="none"/><rect x="34" y="15" width="4.5" height="16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 34.5 H40" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+<symbol id="s7-door-locked" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="14" y="10" width="20" height="28" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="29" cy="24" r="2" fill="currentColor" stroke="none"/><rect x="9" y="20.5" width="30" height="5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-operator" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="18" r="5" fill="currentColor" stroke="none"/><path d="M13 36 V32 A11 7 0 0 1 35 32 V36 Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-station" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 18 L15 39 M24 18 L33 39 M18.9 30 H29.1 M16.7 35 H31.3" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="15" r="2.5" fill="currentColor" stroke="none"/><path d="M28.95 10.05 A7 7 0 0 1 28.95 19.95 M19.05 10.05 A7 7 0 0 0 19.05 19.95" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+<symbol id="s7-date-masked" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="11" y="14" width="26" height="23" fill="none" stroke="currentColor" stroke-width="3"/><rect x="11" y="14" width="26" height="7" fill="currentColor" stroke="none"/><path d="M17 10.5 V17 M31 10.5 V17 M16 29 H22 M26 29 H32" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+<symbol id="s7-city" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><rect x="11" y="23" width="7" height="13" fill="currentColor" stroke="none"/><rect x="20" y="14" width="9" height="22" fill="currentColor" stroke="none"/><rect x="31" y="26" width="7" height="10" fill="currentColor" stroke="none"/><path d="M9 37.5 H40" fill="none" stroke="currentColor" stroke-width="3"/></symbol>
+<symbol id="s7-time-playing" viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="24" r="12" fill="none" stroke="currentColor" stroke-width="3"/><path d="M21 18.5 L31 24 L21 29.5 Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-low-battery" viewBox="0 0 48 48"><path d="M24 5 L44 41 H4 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/><rect x="16" y="26" width="13" height="8" fill="none" stroke="currentColor" stroke-width="3"/><rect x="29" y="28" width="3" height="4" fill="currentColor" stroke="none"/><rect x="19" y="28.5" width="3" height="3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="s7-no-signal" viewBox="0 0 48 48"><path d="M24 5 L44 41 H4 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/><rect x="15" y="31" width="4.5" height="4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="21.5" y="27.5" width="4.5" height="7.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="28" y="24" width="4.5" height="11" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+<symbol id="s7-no-contact" viewBox="0 0 48 48"><path d="M24 5 L44 41 H4 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/><circle cx="24" cy="23" r="3.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 37 V34 A7.5 5.5 0 0 1 31.5 34 V37 Z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+<symbol id="s7-no-reply" viewBox="0 0 48 48"><path d="M24 5 L44 41 H4 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/><path d="M30 25 V31 H22" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M17.5 31 L23 26.5 V35.5 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/></symbol>
+<symbol id="s7-end-of-tape" viewBox="0 0 48 48"><path d="M24 5 L44 41 H4 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/><path d="M16 26 L26 31.5 L16 37 Z" fill="currentColor" stroke="none"/><rect x="28.5" y="26" width="3.5" height="11" fill="currentColor" stroke="none"/></symbol>
+</svg>
 <canvas id="dust" aria-hidden="true"></canvas>
 
 <main id="stageWrap">
   <div id="stage">
 
+    <svg id="cables" viewBox="-140 -30 1040 830" aria-hidden="true"><path class="cab" stroke-width="14" d="M690 320 C810 310 850 390 810 480 C780 545 700 540 640 575"/><path class="cbh" stroke-width="3" transform="translate(-3 -3)" d="M690 320 C810 310 850 390 810 480 C780 545 700 540 640 575"/><path class="cab" stroke-width="13" d="M70 340 C-30 340 -70 430 -25 500 C15 560 95 570 150 610"/><path class="cbh" stroke-width="3" transform="translate(-3 -3)" d="M70 340 C-30 340 -70 430 -25 500 C15 560 95 570 150 610"/><path class="cab" stroke-width="11" d="M390 430 C392 500 340 520 318 585"/><path class="cbh" stroke-width="3" transform="translate(-3 -3)" d="M390 430 C392 500 340 520 318 585"/><path class="cab" stroke-width="8" d="M600 440 C602 470 640 470 665 488"/><path class="cbh" stroke-width="3" transform="translate(-3 -3)" d="M600 440 C602 470 640 470 665 488"/></svg>
+
     <section id="deck" aria-label="Cassette player">
+      <div class="wear" aria-hidden="true"></div>
       <i class="screw" style="left:10px;top:10px"></i><i class="screw" style="right:10px;top:10px"></i>
       <i class="screw" style="left:10px;bottom:10px"></i><i class="screw" style="right:10px;bottom:10px"></i>
+      <span class="stencil" style="left:30px;top:362px" aria-hidden="true">TRANSPORT</span>
+      <span class="stencil" style="right:30px;top:362px" aria-hidden="true">DO NOT OPEN WHILE PLAYING</span>
+      <div class="hazard" aria-hidden="true"></div>
 
       <div id="head">
         <div class="brand"><b>OLD FUTURE</b><i>낡은 미래</i><em>MODEL 7</em></div>
@@ -206,7 +264,7 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
       <div id="bay" aria-hidden="true"></div>
 
       <div id="lcd" role="log" aria-live="polite" aria-label="Tape log">
-        <div id="lcdStatus"><b id="stMode">NO TAPE</b><span id="stSide">STATION 7</span></div>
+        <div id="lcdStatus"><b id="stMode">NO TAPE</b><span id="annun" aria-hidden="true"><svg class="k-tape" viewBox="0 0 48 48"><use href="#s7-tape"/></svg><svg class="k-sig" viewBox="0 0 48 48"><use href="#s7-signal"/></svg><svg class="k-bat" viewBox="0 0 48 48"><use href="#s7-battery"/></svg><svg class="k-date" viewBox="0 0 48 48"><use href="#s7-date-masked"/></svg><svg class="k-con" viewBox="0 0 48 48"><use href="#s7-no-contact"/></svg></span></div>
         <div id="lcdLines"></div>
       </div>
 
@@ -220,17 +278,20 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
       </div>
 
       <div id="keys">
-        <button class="key" id="kEject" type="button" aria-label="Eject"><svg viewBox="0 0 26 20"><path d="M13 2l9 9H4z"/><rect x="4" y="14" width="18" height="4"/></svg><span>EJECT</span></button>
-        <button class="key" id="kRew" type="button" aria-label="Rewind"><svg viewBox="0 0 26 20"><path d="M13 3v14L3 10zM24 3v14L14 10z"/></svg><span>REW</span></button>
-        <button class="key play" id="kPlay" type="button" aria-label="Play"><svg viewBox="0 0 26 20"><path d="M6 2v16l15-8z"/></svg><span>PLAY</span></button>
-        <button class="key" id="kFf" type="button" aria-label="Fast forward"><svg viewBox="0 0 26 20"><path d="M2 3v14l10-7zM13 3v14l10-7z"/></svg><span>FF</span></button>
-        <button class="key" id="kStop" type="button" aria-label="Stop"><svg viewBox="0 0 26 20"><rect x="5" y="3" width="16" height="14"/></svg><span>STOP</span></button>
+        <button class="key" id="kEject" type="button" aria-label="Eject"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#s7-eject"/></svg><span>EJECT</span></button>
+        <button class="key" id="kRew" type="button" aria-label="Rewind"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#s7-rewind"/></svg><span>REW</span></button>
+        <button class="key play" id="kPlay" type="button" aria-label="Play"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#s7-play"/></svg><span>PLAY</span></button>
+        <button class="key" id="kFf" type="button" aria-label="Fast forward"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#s7-fast-forward"/></svg><span>FF</span></button>
+        <button class="key" id="kStop" type="button" aria-label="Stop"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#s7-stop"/></svg><span>STOP</span></button>
       </div>
     </section>
 
     <div id="door"></div>
     <button id="tape" type="button" aria-label="Cassette tape"></button>
     <div id="shelf" role="group" aria-label="Tape shelf"></div>
+    <svg id="tally" viewBox="0 0 290 40" aria-hidden="true"></svg>
+    <div class="note" style="left:40px;top:58px;transform:rotate(-2deg)" aria-hidden="true">BATT. CHECK DAILY</div>
+    <div class="note" style="left:512px;top:296px;transform:rotate(1.5deg)" aria-hidden="true">LOG EVERYTHING</div>
 
   </div>
 </main>
@@ -289,9 +350,9 @@ if (location.search.includes('reset')) { S.solved = false; try { localStorage.re
    ========================================================= */
 const wrap = $('#stageWrap'), stage = $('#stage');
 function fit(){
-  const s = Math.min((innerWidth - 32) / 760, (innerHeight - 36) / 720, 1.3);
+  const s = Math.min((innerWidth - 32) / 760, (innerHeight - 36) / 770, 1.3);
   wrap.style.width = 760 * s + 'px';
-  wrap.style.height = 720 * s + 'px';
+  wrap.style.height = 770 * s + 'px';
   stage.style.transform = `scale(${s})`;
 }
 addEventListener('resize', fit); fit();
@@ -468,6 +529,10 @@ const ledsL = [...$('#vuL').children], ledsR = [...$('#vuR').children];
    TRANSPORT
    ========================================================= */
 const tape = $('#tape'), door = $('#door');
+const lampEl = { tape:$('#annun .k-tape'), sig:$('#annun .k-sig'), bat:$('#annun .k-bat'), date:$('#annun .k-date'), con:$('#annun .k-con') };
+const lamp = (k, on = true) => lampEl[k].classList.toggle('on', on);
+const lampsOff = () => Object.keys(lampEl).forEach(k => lamp(k, false));
+const lampsAll = () => Object.keys(lampEl).forEach(k => lamp(k, true));
 const keyEl = { play:$('#kPlay'), ff:$('#kFf'), rew:$('#kRew') };
 function touch(){ document.body.classList.add('touched'); }
 function progress(){ S.stuckSince = performance.now(); }
@@ -479,7 +544,7 @@ function insert(){
   tape.classList.add('in-bay');
   setTimeout(() => { door.classList.add('closed'); sfx.thunk(); }, 720);
   setTimeout(() => {
-    S.inserted = true; S.busy = false; progress();
+    S.inserted = true; S.busy = false; progress(); lamp('tape');
     lcdLines.innerHTML = ''; sys('TAPE LOADED');
   }, 1100);
 }
@@ -489,7 +554,7 @@ function eject(){
   stopTransport(); S.busy = true;
   door.classList.remove('closed'); sfx.thunk();
   setTimeout(() => { tape.classList.remove('in-bay'); sfx.slide(); }, 520);
-  setTimeout(() => { S.inserted = false; S.busy = false; lcdLines.innerHTML = ''; sys('NO TAPE'); }, 1250);
+  setTimeout(() => { S.inserted = false; S.busy = false; lampsOff(); lcdLines.innerHTML = ''; sys('NO TAPE'); }, 1250);
 }
 function stopTransport(msg){
   S.mode = 'stop'; S.scene++; S.transmitting = false; S.holdT = 0;
@@ -552,14 +617,14 @@ addEventListener('pointerdown', () => ensureAudio(), { capture:true });
 /* =========================================================
    THE TRANSMISSION (what the tape recorded)
    ========================================================= */
-const LOG = [
-  'STATION 7',
-  'OPERATOR 027 OF 27',
-  'OPERATORS 001-026:',
-  '  NO CONTACT',
-  'BATTERY: 62%',
-  'DATE: --/--/----',
-  'NO REPLY'
+const LOG = [            // [text, annunciator lamp to light once the line is printed]
+  ['STATION 7'],
+  ['OPERATOR 027 OF 27'],
+  ['OPERATORS 001-026:'],
+  ['  NO CONTACT', 'con'],
+  ['BATTERY: 62%', 'bat'],
+  ['DATE: --/--/----', 'date'],
+  ['NO REPLY']
 ];
 async function runTransmission(){
   const id = ++S.scene; S.transmitting = true;
@@ -567,12 +632,13 @@ async function runTransmission(){
   lcdLines.innerHTML = '';
   const alive = () => id === S.scene;
   await sleep(900); if (!alive()) return;
-  sfx.bip(520); if (!await lcdPrint('SIGNAL FOUND', { scene:id, speed:34 })) return;
+  sfx.bip(520); lamp('sig'); if (!await lcdPrint('SIGNAL FOUND', { scene:id, speed:34 })) return;
   await sleep(1500); if (!alive()) return;
   lcdLines.innerHTML = '';
-  for (const line of LOG){
+  for (const [line, k] of LOG){
     sfx.bip(line.startsWith(' ') ? 440 : 720);
     if (!await lcdPrint(line, { scene:id, speed:40 })) return;
+    if (k) lamp(k);
     await sleep(1500 + Math.random() * 700); if (!alive()) return;
   }
   await sleep(1200); if (!alive()) return;
@@ -661,7 +727,7 @@ requestAnimationFrame(frame);
   [['Instagram', CONFIG.links.instagram], ['YouTube', CONFIG.links.youtube]].forEach(([n, u]) => { if (!u) return; const li = document.createElement('li'); li.innerHTML = `<a href="${u}">${n}</a>`; sr.appendChild(li); });
   await sleep(500);
   if (S.solved){
-    document.body.classList.add('solved');
+    document.body.classList.add('solved'); lampsAll();
     await lcdPrint('STATION 7', { speed:30 }); await sleep(300);
     await lcdPrint('SIGNAL LOGGED', { speed:30 }); await sleep(300); showLinks();
   } else {
@@ -672,6 +738,18 @@ requestAnimationFrame(frame);
 
 // debug / testing handle
 window.__oldfuture = { S, CONFIG, insert };
+
+/* tally marks on the desk: 27 strokes, five-bar gates */
+(() => {
+  const el = $('#tally'); if (!el) return; const j = () => (Math.random() - .5) * 1.8; let x = 6, out = '';
+  const v = px => `<path d="M${(px + j()).toFixed(1)} ${(5 + j()).toFixed(1)} L${(px + j()).toFixed(1)} ${(33 + j()).toFixed(1)}"/>`;
+  for (let g = 0; g < 5; g++){
+    for (let i = 0; i < 4; i++) out += v(x + i * 8);
+    out += `<path d="M${(x - 5 + j()).toFixed(1)} ${(29 + j()).toFixed(1)} L${(x + 29 + j()).toFixed(1)} ${(9 + j()).toFixed(1)}"/>`;
+    x += 50;
+  }
+  out += v(x) + v(x + 8); el.innerHTML = out;
+})();
 
 /* dust motes */
 (() => {
