@@ -289,7 +289,7 @@ if (location.search.includes('reset')) { S.solved = false; try { localStorage.re
    ========================================================= */
 const wrap = $('#stageWrap'), stage = $('#stage');
 function fit(){
-  const s = Math.min((innerWidth - 20) / 760, (innerHeight - 36) / 720, 1.3);
+  const s = Math.min((innerWidth - 32) / 760, (innerHeight - 36) / 720, 1.3);
   wrap.style.width = 760 * s + 'px';
   wrap.style.height = 720 * s + 'px';
   stage.style.transform = `scale(${s})`;
