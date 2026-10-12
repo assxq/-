@@ -94,7 +94,7 @@
   const $ = (id) => panel.querySelector(id);
   $('#aa-text').value = load('text', DEFAULT_TEXT);
   $('#aa-url').value = load('url', '');
-  $('#aa-auto').checked = load('auto', false);
+  $('#aa-auto').checked = load('auto', true);
 
   const msg = (t) => ($('#aa-msg').textContent = t);
   const run = () => {
@@ -108,14 +108,22 @@
   $('#aa-close').onclick = () => panel.remove();
   $('#aa-auto').onchange = (e) => save('auto', e.target.checked);
 
-  // 클립보드에 유튜브 링크가 있으면 패널에 붙여넣기 (패널 클릭 시)
-  panel.addEventListener('focusin', async (e) => {
-    if (e.target.id !== 'aa-url' || e.target.value) return;
+  // 클립보드의 유튜브 링크를 자동으로 가져오기 (페이지 로드/탭 복귀/클릭 시)
+  const YT = /^https?:\/\/(youtu\.be|(www\.)?youtube\.com)\//;
+  let lastClip = '';
+  async function pullClipboard() {
     try {
       const t = (await navigator.clipboard.readText()).trim();
-      if (/^https?:\/\/(youtu\.be|(www\.)?youtube\.com)\//.test(t)) e.target.value = t;
-    } catch (_) { /* 권한 없으면 무시 */ }
-  });
+      if (!YT.test(t) || t === lastClip) return;
+      lastClip = t;
+      $('#aa-url').value = t;
+      msg('클립보드 링크를 가져왔어요');
+      if ($('#aa-auto').checked) run();
+    } catch (_) { /* 권한 없음/포커스 없음 */ }
+  }
+  pullClipboard();
+  window.addEventListener('focus', pullClipboard);
+  document.addEventListener('click', pullClipboard, true);
 
   // 자동 모드: 입력란이 나타나고 비어 있을 때만 채움
   let busy = false;
