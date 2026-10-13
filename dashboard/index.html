@@ -1,0 +1,434 @@
+<title>테스트회사 라이브</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: 왼쪽 사무실(캐릭터 3명) + 오른쪽 팀 채팅. 위에는 숫자 띠, 아래에는 일감 보드 */
+:root{
+  --bg:#e9eef0; --surface:#ffffff; --fg:#14262b; --muted:#587076; --line:#d0dadd;
+  --accent:#0b6b73; --accent-soft:#d6eced; --good:#1b7a46; --warn:#9a5b00; --bad:#a3322a;
+  --floor:#dfe7ea; --wall:#f4f7f8; --desk:#b98d5a; --desk-edge:#8f6a3d; --screen:#16303a; --glow:#7fe3d0;
+  --bubble-me:#d6eced; --bubble:#f1f5f6;
+  --sans:"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e181b; --surface:#15252a; --fg:#e4eef0; --muted:#93abb1; --line:#2a4047;
+  --accent:#5fc3cc; --accent-soft:#17383d; --good:#58c98a; --warn:#e5b25d; --bad:#ec8077;
+  --floor:#1b2d33; --wall:#12212a; --desk:#8c6a45; --desk-edge:#6b4f31; --screen:#0a1519; --glow:#5fe0c8;
+  --bubble-me:#17383d; --bubble:#1c3036; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e181b; --surface:#15252a; --fg:#e4eef0; --muted:#93abb1; --line:#2a4047;
+  --accent:#5fc3cc; --accent-soft:#17383d; --good:#58c98a; --warn:#e5b25d; --bad:#ec8077;
+  --floor:#1b2d33; --wall:#12212a; --desk:#8c6a45; --desk-edge:#6b4f31; --screen:#0a1519; --glow:#5fe0c8;
+  --bubble-me:#17383d; --bubble:#1c3036; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.55;
+  padding-inline:max(16px,3vw);padding-block:18px 40px}
+main{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:clamp(1.3rem,3.6vw,1.8rem);font-weight:900;margin:0;letter-spacing:-.01em}
+.top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:.74rem;padding:3px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.badge.replay .dot{background:var(--warn)}
+.badge.err .dot{background:var(--bad)}
+@media (prefers-reduced-motion:no-preference){.badge:not(.err) .dot{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.25}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 14px;min-width:0}
+.stat .k{font-size:.72rem;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:1.45rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.25}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .5s}
+.stage{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:stretch}
+@media(max-width:860px){.stage{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;min-width:0}
+.panel>h2{font-size:.9rem;margin:0;padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel>h2 small{font-weight:400;color:var(--muted);font-family:var(--mono);font-size:.72rem}
+.stage>.panel:first-child{display:flex;flex-direction:column}
+.office{flex:1;align-items:end;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:linear-gradient(var(--wall) 0 58%,var(--floor) 58% 100%);padding:14px 8px 0;border-radius:0 0 4px 4px;overflow:hidden}
+@media(max-width:560px){.office{grid-template-columns:1fr}}
+.seat{display:flex;flex-direction:column;align-items:center;min-width:0;position:relative}
+.seat svg{width:100%;max-width:210px;height:auto;overflow:visible}
+.nameplate{margin:-4px 0 12px;text-align:center}
+.nameplate b{display:block;font-size:1rem}
+.nameplate span{font-size:.72rem;color:var(--muted)}
+.state{display:inline-block;margin-top:3px;font-family:var(--mono);font-size:.68rem;padding:1px 8px;border-radius:9px;background:var(--accent-soft);color:var(--accent)}
+.state.working{background:var(--good);color:#fff}
+.state.asleep{background:var(--line);color:var(--muted)}
+.bubble-say{position:absolute;top:0;left:50%;transform:translateX(-50%);max-width:92%;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:3px 10px;font-size:.74rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2}
+.bubble-say::after{content:"";position:absolute;bottom:-6px;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--line);border-bottom:0}
+/* 캐릭터 애니메이션 */
+.who .arm{transform-box:fill-box;transform-origin:50% 0}
+.who .mouth-work,.who .mouth-done,.who .zzz,.who .spark,.who .glowpad{display:none}
+.who.working .mouth-idle,.who.done .mouth-idle,.who.asleep .mouth-idle{display:none}
+.who.working .mouth-work,.who.done .mouth-done{display:inline}
+.who.asleep .mouth-work{display:none}
+.who.asleep .zzz{display:inline}
+.who.done .spark{display:inline}
+.who.working .glowpad{display:inline}
+.who.asleep .eyes-open{display:none}.who:not(.asleep) .eyes-shut{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .who .body{animation:breathe 3.2s ease-in-out infinite}
+  .who .eyes-open{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+  .who.working .body{animation:work-bob .5s ease-in-out infinite}
+  .who.working .arm.l{animation:type .26s ease-in-out infinite}
+  .who.working .arm.r{animation:type .26s ease-in-out infinite .13s}
+  .who.working .glowpad{animation:glow 1s ease-in-out infinite}
+  .who.done .body{animation:hop .55s ease-out 3}
+  .who.done .spark{animation:twinkle .6s ease-in-out infinite}
+  .who.asleep .body{animation:none;transform:translateY(4px) rotate(-3deg)}
+  .who.asleep .zzz{animation:floatz 2.2s ease-in-out infinite}
+}
+@keyframes breathe{50%{transform:translateY(2px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes work-bob{50%{transform:translateY(1.5px)}}
+@keyframes type{50%{transform:translateY(5px) rotate(4deg)}}
+@keyframes glow{50%{opacity:.35}}
+@keyframes hop{40%{transform:translateY(-16px)}}
+@keyframes twinkle{50%{opacity:.2;transform:scale(.8)}}
+@keyframes floatz{50%{transform:translateY(-6px);opacity:.5}}
+/* 채팅 */
+.chat{display:flex;flex-direction:column;height:520px}
+.chat .log{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.sys{align-self:center;max-width:94%;font-size:.74rem;color:var(--muted);text-align:center;background:var(--bg);border-radius:10px;padding:3px 12px}
+.sys b{color:var(--fg);font-weight:500}
+.msg{display:flex;gap:8px;align-items:flex-start;max-width:96%}
+.msg .av{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:900;font-size:.8rem;color:#fff}
+.msg .meta{font-size:.72rem;color:var(--muted);margin-bottom:2px}
+.msg .meta b{color:var(--fg);margin-right:6px}
+.msg .txt{background:var(--bubble);border-radius:2px 10px 10px 10px;padding:7px 11px;overflow-wrap:anywhere;white-space:pre-wrap;min-width:0}
+.msg .more{background:none;border:0;color:var(--accent);font:inherit;font-size:.74rem;cursor:pointer;padding:2px 0 0}
+.msg .more:focus-visible{outline:2px solid var(--accent)}
+.typing .txt{display:flex;gap:4px;padding:10px 12px}
+.typing .txt i{width:6px;height:6px;border-radius:50%;background:var(--muted);display:block}
+@media (prefers-reduced-motion:no-preference){.typing .txt i{animation:tdot 1s infinite}.typing .txt i:nth-child(2){animation-delay:.15s}.typing .txt i:nth-child(3){animation-delay:.3s}}
+@keyframes tdot{50%{transform:translateY(-4px);opacity:.4}}
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;padding:12px}
+.card{border:1px solid var(--line);border-radius:4px;padding:9px 12px;min-width:0}
+.card .id{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.card .t{font-weight:500;overflow-wrap:anywhere}
+.card .ft{display:flex;justify-content:space-between;gap:8px;margin-top:4px;font-size:.74rem;color:var(--muted)}
+.pill{font-size:.68rem;font-weight:700;padding:1px 8px;border-radius:9px;background:var(--line);color:var(--fg)}
+.pill.done{background:var(--good);color:#fff}.pill.in_progress{background:var(--accent);color:#fff}.pill.todo{background:var(--accent-soft);color:var(--accent)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 14px;border-top:1px solid var(--line);font-size:.78rem}
+.ctl button{font:inherit;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:3px 12px;cursor:pointer}
+.ctl button:focus-visible,.ctl input:focus-visible{outline:2px solid var(--accent)}
+.ctl input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+.note{font-size:.76rem;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+
+<main>
+  <div class="top">
+    <div><h1 id="cname">테스트회사</h1><div class="note" id="goal">목표: 체험</div></div>
+    <span class="badge" id="mode"><i class="dot"></i><span id="modeText">연결 중…</span></span>
+  </div>
+
+  <section class="stats" aria-label="핵심 수치">
+    <div class="stat"><div class="k">누적 지출</div><div class="v" id="sSpend">$0.00</div><div class="bar"><i id="sBar"></i></div></div>
+    <div class="stat"><div class="k">월 예산</div><div class="v" id="sBudget">$10</div></div>
+    <div class="stat"><div class="k">지금 일하는 중</div><div class="v" id="sWorking">0</div></div>
+    <div class="stat"><div class="k">완료한 일감</div><div class="v" id="sDone">0</div></div>
+  </section>
+
+  <div class="stage">
+    <section class="panel">
+      <h2>사무실 <small id="clock"></small></h2>
+      <div class="office" id="office"></div>
+      <div class="ctl" id="ctl" hidden>
+        <button id="bPlay" type="button">일시정지</button>
+        <button id="bRestart" type="button">처음부터</button>
+        <label>속도 <select id="speed"><option value="1">1배</option><option value="2" selected>2배</option><option value="4">4배</option></select></label>
+        <input id="seek" type="range" min="0" max="1000" value="0" aria-label="재생 위치">
+      </div>
+    </section>
+    <section class="panel chat">
+      <h2>팀 채팅 <small id="chatCount"></small></h2>
+      <div class="log" id="log" role="log" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>일감 보드 <small id="boardCount"></small></h2>
+    <div class="board" id="board"></div>
+  </section>
+  <p class="note" id="foot"></p>
+</main>
+
+<script>
+/* ===== 캐릭터 정의 (이름 → 모양/색) ===== */
+const LOOKS = {
+  "한결": { c1:"#1f6f8b", c2:"#9fd3e6", acc:"crown",   glass:false },
+  "다온": { c1:"#8a5a00", c2:"#f6d98f", acc:"band",    glass:true  },
+  "루미": { c1:"#0f7a5a", c2:"#f6b6c8", acc:"star",    glass:false },
+};
+const DEFAULT_LOOK = { c1:"#4a5d66", c2:"#cfd9dd", acc:"none", glass:false };
+const lookOf = (a) => LOOKS[a.name] || DEFAULT_LOOK;
+
+function charSVG(look){
+  const {c1,c2,acc,glass} = look;
+  const accessory = acc==="crown" ? `<path d="M52 44l8 12 12-17 12 17 8-12v16H52z" fill="#e8b93c" stroke="${c1}" stroke-width="2.5" stroke-linejoin="round"/>`
+    : acc==="band" ? `<path d="M40 54q32-17 64 0" fill="none" stroke="#b5382f" stroke-width="6" stroke-linecap="round"/>`
+    : acc==="star" ? `<path d="M96 28l3 7.5 7.5 3-7.5 3-3 7.5-3-7.5-7.5-3 7.5-3z" fill="#f2c230" stroke="${c1}" stroke-width="1.8" stroke-linejoin="round"/><circle cx="48" cy="42" r="3.5" fill="#f2c230"/>` : "";
+  const eyes = glass
+    ? `<g class="eyes-open"><circle cx="58" cy="70" r="8" fill="none" stroke="${c1}" stroke-width="2.5"/><circle cx="86" cy="70" r="8" fill="none" stroke="${c1}" stroke-width="2.5"/><path d="M66 70h12" stroke="${c1}" stroke-width="2.5"/><circle cx="58" cy="70" r="2.6" fill="${c1}"/><circle cx="86" cy="70" r="2.6" fill="${c1}"/></g>`
+    : `<g class="eyes-open"><circle cx="58" cy="70" r="3.6" fill="${c1}"/><circle cx="86" cy="70" r="3.6" fill="${c1}"/></g>`;
+  return `<svg viewBox="0 0 144 190" class="who" role="img" aria-hidden="true">
+    <rect x="6" y="150" width="132" height="10" rx="2" fill="var(--desk)" stroke="var(--desk-edge)" stroke-width="2"/>
+    <rect x="14" y="160" width="8" height="28" fill="var(--desk-edge)"/><rect x="122" y="160" width="8" height="28" fill="var(--desk-edge)"/>
+    <g class="body">
+      <rect x="34" y="100" width="76" height="52" rx="14" fill="${c1}"/>
+      <circle cx="72" cy="68" r="34" fill="${c2}" stroke="${c1}" stroke-width="3"/>
+      ${accessory}${eyes}
+      <path class="eyes-shut" d="M52 71q6 5 12 0M80 71q6 5 12 0" fill="none" stroke="${c1}" stroke-width="2.6" stroke-linecap="round"/>
+      <path class="mouth-idle" d="M62 86q10 8 20 0" fill="none" stroke="${c1}" stroke-width="2.8" stroke-linecap="round"/>
+      <path class="mouth-work" d="M64 88h16" stroke="${c1}" stroke-width="3" stroke-linecap="round"/>
+      <path class="mouth-done" d="M60 84q12 14 24 0z" fill="${c1}"/>
+      <g class="arm l"><rect x="38" y="104" width="13" height="40" rx="6.5" fill="${c1}" stroke="${c2}" stroke-width="2"/></g>
+      <g class="arm r"><rect x="93" y="104" width="13" height="40" rx="6.5" fill="${c1}" stroke="${c2}" stroke-width="2"/></g>
+    </g>
+    <rect x="30" y="128" width="84" height="24" rx="3" fill="var(--screen)" stroke="var(--desk-edge)" stroke-width="2"/>
+    <rect class="glowpad" x="36" y="133" width="72" height="14" rx="2" fill="var(--glow)" opacity=".75"/>
+    <g class="zzz" fill="${c1}" font-family="JetBrains Mono,monospace" font-weight="700"><text x="104" y="42" font-size="16">Z</text><text x="118" y="26" font-size="12">z</text></g>
+    <g class="spark"><path d="M20 40l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#f2c230"/><path d="M124 56l2 4.5 4.5 2-4.5 2-2 4.5-2-4.5-4.5-2 4.5-2z" fill="#f2c230"/></g>
+  </svg>`;
+}
+
+/* ===== 공통 유틸 ===== */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const usd = (n) => "$" + (Math.round(n * 100) / 100).toFixed(2);
+const pad2 = (n) => String(n).padStart(2, "0");
+const fmtTime = (ms) => { const d = new Date(ms); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; };
+const kfmt = (n) => n >= 1000 ? (n/1000).toFixed(1) + "k" : String(n || 0);
+const plain = (md) => String(md || "").replace(/```[a-z]*\n?/g, "").replace(/^#+\s*/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/`([^`]+)`/g, "$1").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").trim();
+const excerpt = (s, n) => { const p = plain(s); return p.length > n ? p.slice(0, n).trimEnd() + "…" : p; };
+
+/* ===== 뷰 모델: 원본 데이터 + 시계(ctx)로 화면 상태를 계산 ===== */
+function buildView(raw, ctx){
+  const now = ctx.now();
+  const T = (iso) => ctx.ts(iso);
+  const issuesById = new Map(raw.issues.map(i => [i.id, i]));
+  const agentsById = new Map(raw.agents.map(a => [a.id, a]));
+  const runs = raw.runs.filter(r => r.startedAt && T(r.startedAt) <= now);
+  const isRunning = (r) => !r.finishedAt || T(r.finishedAt) > now;
+  const issueOfRun = (r) => issuesById.get(r.issueId || r.contextSnapshot?.issueId);
+
+  const orderedAgents = [...raw.agents].sort((a, b) => (a.reportsTo ? 1 : 0) - (b.reportsTo ? 1 : 0) || String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+  const agents = orderedAgents.map(a => {
+    const mine = runs.filter(r => r.agentId === a.id);
+    const running = mine.find(isRunning);
+    const finished = mine.filter(r => !isRunning(r)).sort((x,y) => T(y.finishedAt) - T(x.finishedAt))[0];
+    const justDone = finished && (now - T(finished.finishedAt)) < ctx.celebrateMs;
+    const spent = mine.filter(r => !isRunning(r)).reduce((s, r) => s + (r.usageJson?.costUsd || 0), 0);
+    const limit = (a.budgetMonthlyCents || 0) / 100;
+    const paused = a.status === "paused" && !ctx.replay;
+    const state = paused ? "asleep" : running ? "working" : justDone ? "done" : "idle";
+    const issue = running ? issueOfRun(running) : finished ? issueOfRun(finished) : null;
+    return { ...a, state, issue, spent, limit };
+  });
+
+  const issues = raw.issues.filter(i => T(i.createdAt) <= now).map(i => {
+    const running = runs.some(r => isRunning(r) && (r.issueId || r.contextSnapshot?.issueId) === i.id);
+    const done = i.completedAt && T(i.completedAt) <= now;
+    const status = done ? "done" : running ? "in_progress" : (ctx.replay ? "todo" : (i.status === "backlog" ? "todo" : i.status));
+    return { ...i, status };
+  }).sort((a,b) => (a.issueNumber||0) - (b.issueNumber||0));
+
+  // 채팅 이벤트
+  const ev = [];
+  for (const i of issues){
+    const who = agentsById.get(i.assigneeAgentId);
+    ev.push({ t: T(i.createdAt), k: 0, type: "sys", html: `<b>사용자</b>가 ${who ? `<b>${esc(who.name)}</b>에게 ` : ""}<b>${esc(i.identifier)}</b> 배정 · ${esc(i.title)}` });
+  }
+  for (const r of runs){
+    const a = agentsById.get(r.agentId), i = issueOfRun(r);
+    ev.push({ t: T(r.startedAt), k: 1, type: "sys", html: `<b>${esc(a?.name || "에이전트")}</b> 작업 시작 · ${esc(i?.identifier || "")}` });
+    if (!isRunning(r)){
+      const u = r.usageJson || {}, sec = Math.max(1, Math.round((Date.parse(r.finishedAt) - Date.parse(r.startedAt)) / 1000));
+      ev.push({ t: T(r.finishedAt), k: 3, type: "sys", html: `<b>${esc(i?.identifier || "")}</b> 실행 종료 · ${sec}초 · 입력 ${kfmt(u.inputTokens)} / 출력 ${kfmt(u.outputTokens)} 토큰 · <b>${usd(u.costUsd || 0)}</b>` });
+    }
+  }
+  for (const [issueId, list] of Object.entries(raw.comments || {})){
+    for (const c of list){
+      if (T(c.createdAt) > now) continue;
+      const a = agentsById.get(c.authorAgentId);
+      ev.push({ t: T(c.createdAt), k: 2, type: "msg", agent: a, body: c.body, id: c.id, issue: issuesById.get(issueId) });
+    }
+  }
+  ev.sort((a,b) => a.t - b.t || a.k - b.k);
+
+  const done = issues.filter(i => i.status === "done").length;
+  const spend = ctx.replay || raw.spentCents == null
+    ? runs.filter(r => !isRunning(r)).reduce((s, r) => s + (r.usageJson?.costUsd || 0), 0)
+    : raw.spentCents / 100;
+  return { company: raw.company, agents, issues, ev, spend, budget: (raw.company?.budgetMonthlyCents || 0) / 100,
+    working: agents.filter(a => a.state === "working").length, done, goal: raw.goalTitle };
+}
+
+/* ===== 렌더링 ===== */
+const seats = new Map();      // agentId → {root, state, say, name}
+const seen = new Set();       // 채팅에 이미 그린 이벤트 키
+let typingEls = [], lastEvCount = 0;
+
+function ensureSeats(agents){
+  const office = $("office");
+  for (const a of agents){
+    if (seats.has(a.id)) continue;
+    const el = document.createElement("div");
+    el.className = "seat";
+    el.innerHTML = `<div class="bubble-say" hidden></div>${charSVG(lookOf(a))}
+      <div class="nameplate"><b>${esc(a.name)}</b><span>${esc(a.title || a.role)}</span><br><span class="state"></span></div>`;
+    office.appendChild(el);
+    seats.set(a.id, { el, who: el.querySelector(".who"), say: el.querySelector(".bubble-say"), st: el.querySelector(".state") });
+  }
+}
+const STATE_TEXT = { working: "작업 중", idle: "대기 중", done: "방금 완료", asleep: "예산 도달 · 휴식" };
+
+function render(v){
+  $("cname").textContent = v.company?.name || "회사";
+  if (v.goal) $("goal").textContent = "목표: " + v.goal;
+  $("sSpend").textContent = usd(v.spend);
+  $("sBudget").textContent = usd(v.budget);
+  $("sBar").style.width = v.budget ? Math.min(100, v.spend / v.budget * 100) + "%" : "0%";
+  $("sWorking").textContent = v.working;
+  $("sDone").textContent = v.done + " / " + v.issues.length;
+
+  ensureSeats(v.agents);
+  for (const a of v.agents){
+    const s = seats.get(a.id);
+    s.who.setAttribute("class", "who " + a.state);
+    s.st.textContent = STATE_TEXT[a.state] + (a.limit ? ` · ${usd(a.spent)}/${usd(a.limit)}` : "");
+    s.st.className = "state " + a.state;
+    const say = a.state === "working" ? `${a.issue?.identifier || ""} 작성 중…`
+      : a.state === "done" ? `${a.issue?.identifier || ""} 끝!` : a.state === "asleep" ? "쉬는 중" : "";
+    s.say.hidden = !say; s.say.textContent = say;
+  }
+
+  // 일감 보드
+  $("boardCount").textContent = v.issues.length + "건";
+  $("board").innerHTML = v.issues.map(i => {
+    const who = v.agents.find(a => a.id === i.assigneeAgentId);
+    const label = { done:"완료", in_progress:"진행 중", todo:"대기" }[i.status] || i.status;
+    return `<div class="card"><div class="id">${esc(i.identifier)}</div><div class="t">${esc(i.title)}</div>
+      <div class="ft"><span>${esc(who?.name || "미배정")}</span><span class="pill ${esc(i.status)}">${label}</span></div></div>`;
+  }).join("");
+
+  renderChat(v);
+}
+
+function renderChat(v){
+  const log = $("log");
+  const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+  // 시간이 되감기면(재생 모드) 채팅을 다시 그린다
+  if (v.ev.length < lastEvCount){ log.innerHTML = ""; seen.clear(); typingEls = []; }
+  lastEvCount = v.ev.length;
+  typingEls.forEach(el => el.remove()); typingEls = [];
+  for (const e of v.ev){
+    const key = e.type + "|" + (e.id || e.html) + "|" + e.t;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const row = document.createElement("div");
+    if (e.type === "sys"){ row.className = "sys"; row.innerHTML = e.html + ` <span style="opacity:.6">${fmtTime(ctxTimeToReal(e.t))}</span>`; }
+    else {
+      const a = e.agent, look = a ? lookOf(a) : DEFAULT_LOOK;
+      const full = plain(e.body), short = excerpt(e.body, 200), long = full.length > short.length;
+      row.className = "msg";
+      row.innerHTML = `<div class="av" style="background:${look.c1}">${esc((a?.name || "?").slice(0,1))}</div>
+        <div style="min-width:0"><div class="meta"><b>${esc(a?.name || "에이전트")}</b>${esc(e.issue?.identifier || "")} · ${fmtTime(ctxTimeToReal(e.t))}</div>
+        <div class="txt"></div>${long ? `<button class="more" type="button">전체 보기</button>` : ""}</div>`;
+      const txt = row.querySelector(".txt"); txt.textContent = short;
+      const btn = row.querySelector(".more");
+      if (btn) btn.addEventListener("click", () => { const open = btn.dataset.open === "1"; txt.textContent = open ? short : full; btn.textContent = open ? "전체 보기" : "접기"; btn.dataset.open = open ? "0" : "1"; });
+    }
+    log.appendChild(row);
+  }
+  for (const a of v.agents.filter(x => x.state === "working")){
+    const typingEl = document.createElement("div"); typingEl.className = "msg typing";
+    const look = lookOf(a);
+    typingEl.innerHTML = `<div class="av" style="background:${look.c1}">${esc(a.name.slice(0,1))}</div><div><div class="meta"><b>${esc(a.name)}</b>입력 중</div><div class="txt"><i></i><i></i><i></i></div></div>`;
+    log.appendChild(typingEl); typingEls.push(typingEl);
+  }
+  $("chatCount").textContent = v.ev.filter(e => e.type === "msg").length + "개 메시지";
+  if (atBottom) log.scrollTop = log.scrollHeight;
+}
+
+/* ===== 시간 매핑 (재생 모드는 가상 시간을 실제 시각으로 표시) ===== */
+let ctxTimeToReal = (t) => t;
+
+/* ===== 실시간 모드 ===== */
+async function getJSON(path){ const r = await fetch(path, { cache: "no-store" }); if (!r.ok) throw new Error(path + " " + r.status); return r.json(); }
+
+async function startLive(){
+  const qs = new URLSearchParams(location.search);
+  const base = qs.get("api") || "";
+  const companies = await getJSON(base + "/api/companies");
+  const company = companies.find(c => c.id === qs.get("company")) || companies[0];
+  if (!company) throw new Error("회사를 찾지 못했습니다");
+  const cid = company.id;
+  const commentCache = new Map();    // issueId → {updatedAt, list}
+  ctxTimeToReal = (t) => t;
+  const ctx = { replay: false, now: () => Date.now(), ts: (iso) => Date.parse(iso), celebrateMs: 8000 };
+  $("modeText").textContent = "LIVE · 3초마다 갱신";
+
+  async function tick(){
+    try {
+      const [co, agents, issues, runs, goals] = await Promise.all([
+        getJSON(`${base}/api/companies/${cid}`), getJSON(`${base}/api/companies/${cid}/agents`),
+        getJSON(`${base}/api/companies/${cid}/issues`), getJSON(`${base}/api/companies/${cid}/heartbeat-runs?limit=100`),
+        getJSON(`${base}/api/companies/${cid}/goals`).catch(() => [])
+      ]);
+      const comments = {};
+      await Promise.all(issues.map(async (i) => {
+        const hit = commentCache.get(i.id);
+        if (hit && hit.updatedAt === i.updatedAt) { comments[i.id] = hit.list; return; }
+        const d = await getJSON(`${base}/api/issues/${i.id}/comments`).catch(() => []);
+        const list = Array.isArray(d) ? d : (d.comments || []);
+        commentCache.set(i.id, { updatedAt: i.updatedAt, list }); comments[i.id] = list;
+      }));
+      const goal = goals.find(g => g.level === "company") || goals[0];
+      const runsN = runs.map(r => ({ ...r, issueId: r.contextSnapshot?.issueId }));
+      render(buildView({ company: co, agents: agents.filter(a => a.status !== "terminated"), issues, runs: runsN, comments, spentCents: co.spentMonthlyCents, goalTitle: goal?.title }, ctx));
+      $("mode").className = "badge"; $("modeText").textContent = "LIVE · " + fmtTime(Date.now());
+    } catch (e) {
+      $("mode").className = "badge err"; $("modeText").textContent = "연결 끊김 · 재시도 중";
+      $("foot").textContent = "Paperclip 서버에 연결하지 못했습니다. (" + e.message + ")";
+    }
+  }
+  await tick(); setInterval(tick, 3000);
+  $("foot").textContent = "이 화면은 Paperclip API를 읽기만 합니다. 에이전트나 일감을 바꾸지 않습니다.";
+}
+
+/* ===== 재생 모드 (실제 실행 기록을 압축해서 재생) ===== */
+function startReplay(data){
+  const iso = [];
+  data.issues.forEach(i => { iso.push(i.createdAt); if (i.completedAt) iso.push(i.completedAt); });
+  data.runs.forEach(r => { iso.push(r.startedAt); if (r.finishedAt) iso.push(r.finishedAt); });
+  Object.values(data.comments).flat().forEach(c => iso.push(c.createdAt));
+  const real = [...new Set(iso.map(s => Date.parse(s)))].sort((a,b) => a - b);
+  const vt = new Map(); let acc = 0;
+  real.forEach((t, i) => { if (i) { const gap = t - real[i-1]; acc += gap <= 60000 ? gap / 5 : 2500; } vt.set(t, acc); });
+  const total = acc + 5000;
+  const virtToReal = (v) => { let best = real[0]; for (const t of real) { if (vt.get(t) <= v) best = t; else break; } return best; };
+  ctxTimeToReal = (t) => virtToReal(t);  // 이벤트 가상 시각 → 실제 시각
+  let tv = 0, playing = true, last = performance.now();
+  const ctx = { replay: true, now: () => tv, ts: (s) => vt.get(Date.parse(s)) ?? Infinity, celebrateMs: 4500 };
+  const q = Number(new URLSearchParams(location.search).get("t"));
+  if (q > 0) { tv = q * 1000; playing = false; }
+  $("ctl").hidden = false;
+  $("mode").className = "badge replay"; $("modeText").textContent = "재생 · 실제 기록";
+  $("foot").textContent = "방금 실제로 실행된 기록(2026-10-13)을 압축해서 재생하는 화면입니다. 실시간 연결이 아닙니다. 실시간 버전은 로컬에서 server.mjs를 실행하세요.";
+  const seek = $("seek"), bPlay = $("bPlay");
+  const draw = () => { render(buildView(data, ctx)); seek.value = Math.round(tv / total * 1000); $("clock").textContent = fmtTime(virtToReal(tv)); };
+  function frame(now){
+    const dt = now - last; last = now;
+    if (playing){ tv += dt * Number($("speed").value); if (tv >= total) { tv = total; playing = false; bPlay.textContent = "다시 재생"; } }
+    draw(); requestAnimationFrame(frame);
+  }
+  bPlay.onclick = () => { if (tv >= total) tv = 0; playing = !playing; bPlay.textContent = playing ? "일시정지" : "재생"; last = performance.now(); };
+  $("bRestart").onclick = () => { tv = 0; playing = true; bPlay.textContent = "일시정지"; last = performance.now(); };
+  seek.oninput = () => { tv = Number(seek.value) / 1000 * total; playing = false; bPlay.textContent = "재생"; };
+  requestAnimationFrame(frame);
+}
+
+if (window.__REPLAY__) startReplay(window.__REPLAY__);
+else startLive().catch(e => { $("mode").className = "badge err"; $("modeText").textContent = "연결 실패"; $("foot").textContent = e.message; });
+</script>
