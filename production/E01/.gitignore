@@ -1,5 +1,7 @@
-# generated media that should not bloat git (keep selected/ and images/)
+# generated media that should not bloat git (keep selected/, shortlist/ and images/)
 build/
 generated/bakeoff/
 generated/candidates/
 generated/review/
+# ProRes overlay (~160 MB) made by make_overlay.py --prores
+overlay/*.mov

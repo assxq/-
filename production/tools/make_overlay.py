@@ -22,8 +22,9 @@ ICONS = f"{ROOT}/icons/png"
 _ap = argparse.ArgumentParser(); _ap.add_argument("--ep", default="E01"); _ap.add_argument("--prores", action="store_true"); _ap.add_argument("--stills", action="store_true")
 ARGS = _ap.parse_args()
 EP = ARGS.ep
-with open(f"{ROOT}/production/{EP}/episode.json", encoding="utf-8") as _f:
-    CFG = json.load(_f)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import episode as epcfg
+CFG = epcfg.load(EP, need=("overlay",))
 OV = CFG["overlay"]
 OUT = f"{ROOT}/production/{EP}/overlay"
 AUDIO = f"{ROOT}/production/{EP}/audio/{EP}_audio_temp_mix.wav"
@@ -91,7 +92,7 @@ def draw_ui(d, canvas, t, with_counter=True, with_rec=True):
     if with_counter:
         d.text((SAFE_R, TOP_Y + 54), f"{int(t):06d}", font=F(64), fill=GREEN + (235,), anchor="rs")
     # REC (second row, right): blinks on/off on the lamp cycle (episode.json: overlay.rec)
-    if with_rec and (t % REC_PERIOD) < REC_ON:
+    if with_rec and (int(round(t * 1000)) % int(round(REC_PERIOD * 1000))) < int(round(REC_ON * 1000)):
         tw = d.textlength("REC", font=F(46))
         d.text((SAFE_R, TOP_Y + 124), "REC", font=F(46), fill=RED + (240,), anchor="rs")
         canvas.alpha_composite(icon("record", 46, RED), (int(SAFE_R - tw - 62), TOP_Y + 124 - 40))
@@ -133,6 +134,8 @@ def main():
     # stills
     render(OV.get("ui_static_t", 3.5), captions=False, counter=False, rec=False).save(f"{OUT}/ui_static.png")
     cover_t = OV.get("cover_t", 3.9)
+    for old in [n for n in os.listdir(OUT) if n.startswith("caption_") and n.endswith(".png")]:
+        os.remove(f"{OUT}/{old}")                        # captions may have changed since the last run
     for old in [n for n in os.listdir(OUT) if n.startswith("ui_cover_t")]:
         os.remove(f"{OUT}/{old}")
     render(cover_t).save(f"{OUT}/ui_cover_t{cover_t:g}.png")

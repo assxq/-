@@ -31,6 +31,17 @@
 | 실제 폴리 사운드 | ⬜ **5단계** (선택, 권장) | |
 | 인스타·유튜브 계정, 웹페이지 링크 | ⬜ **6단계** | `web/index.html`의 `CONFIG.links` |
 
+## 1-1. 준비물 (한 번만)
+| 필요한 것 | 어디에 쓰나 | 확인 방법 |
+|---|---|---|
+| Python 3, **Pillow, numpy** | 모든 `production/tools/*.py` | `python3 -c "import PIL, numpy"` |
+| **ffmpeg** (`libx264`, **`libvpx-vp9` 디코더** 포함) | 조립, 질감 필터, 오디오 측정 | `ffmpeg -decoders \| grep vp9`, `ffmpeg -encoders \| grep libx264` |
+| **bash** | `tape_look.sh` (윈도우는 WSL 필요) | `bash --version` |
+| **VT323 서체** (Google Fonts, 무료) | `make_overlay.py`로 오버레이를 **새로 만들 때만**. 조립은 이미 만들어진 오버레이를 쓴다 | `VT323_PATH=/경로/VT323.ttf` 또는 `~/.fonts/VT323.ttf` |
+| 라벨용 서체 (DejaVu Sans Mono 등) | `--labeled` / 애니매틱의 샷 라벨. 없으면 라벨만 건너뛴다 | `LABEL_FONT=/경로/폰트.ttf` |
+| Playwright + Chromium | 도상 PNG(`icons/tools/render_png.js`)와 웹 테스트 | 도상을 다시 만들 때만 |
+소요 시간 감: 20초 영상 조립은 **수 분**(질감 필터가 느리다). 오버레이 새로 만들기는 약 2분, 사운드는 몇 초.
+
 ## 2. 역할 분담
 | 일 | 사용자 | Claude |
 |---|---|---|
@@ -45,9 +56,10 @@
 
 ### Claude와 작업하는 방법 (파일 전달)
 Claude는 클라우드 세션의 저장소에서 작업하므로 **파일이 저장소에 있어야** 분석·조립할 수 있다.
-1. 생성한 클립을 **본인 PC에서** `production/E01/generated/` 아래 해당 폴더에 넣는다.
-2. 브랜치 `claude/dreamy-pasteur-7bs4ip`에 **푸시**한다. (GitHub 웹에서 파일 업로드도 가능. 웹 업로드는 파일당 25MB 이하)
-3. "후보 올렸어요"라고 알려 주면 Claude가 검수와 조립을 진행한다.
+1. 후보 영상 전부는 **본인 PC나 클라우드 드라이브에 보관**한다. (`generated/candidates/`는 용량 때문에 git이 무시한다)
+2. Claude에게 검수를 맡길 후보만 **클립당 최대 3개**를 `production/E01/generated/shortlist/<클립>/`에 넣고 브랜치 `claude/dreamy-pasteur-7bs4ip`에 푸시한다. (GitHub 웹 업로드는 파일당 25MB 이하. 클립이 크면 해상도를 낮춘 사본을 올려도 검수에는 충분하다)
+3. 최종 선택본은 **`generated/selected/`**에 이름 규칙대로 넣는다. 조립은 이 폴더만 읽는다.
+4. "후보 올렸어요"라고 알려 주면 Claude가 검수와 조립을 진행한다.
 ※ **직접 하는 방법**: 본인 PC에 Python 3, Pillow, numpy, ffmpeg가 있으면 `python3 production/tools/assemble.py --ep E01` 를 직접 실행해도 된다. (아래 4단계)
 
 ## 3. 폴더와 이름 규칙
@@ -57,7 +69,8 @@ production/E01/
   generated/
     images/        A-H.png A-L.png A-W.png B1.png B2.png C.png      (추적)
     bakeoff/       kling_01.mp4 veo_01.mp4 runway_01.mp4 ...       (git 무시)
-    candidates/    C1/ C2/ C3/ C4/ S6/   <클립>_<도구>_k<번호>_s<시드>.mp4  (git 무시)
+    candidates/    C1/ C2/ C3/ C4/ S6/   <클립>_<도구>_k<번호>_s<시드>.mp4  (git 무시. 본인 보관)
+    shortlist/     C1/ C2/ C3/ C4/       Claude 검수용 후보, 클립당 최대 3개          (추적)
     review/        후보별 sheet.png, metrics.png                    (git 무시)
     selected/      C1.mp4 C2.mp4 C3.mp4 C4.mp4 S6_C.png            (추적. 이름 정확히)
     LOG.csv        모든 생성 기록
@@ -74,7 +87,7 @@ production/E01/
 1. 후보 도구 3개를 정한다. 기본 추천: **Kling 3.0 · Veo 3.1(Fast) · Runway Gen-4.5**. (Seedance 2.0은 선택)
 2. 도구마다 **같은 설정**으로 4번씩 생성한다: 9:16 · 5초 · 모션 낮음 · 카메라 고정 · 같은 프롬프트 · 같은 시작 프레임
 3. 파일을 `generated/bakeoff/<도구>_<번호>.mp4`로 저장한다.
-4. 각 파일을 검수한다: `python3 production/tools/review_clip.py <파일> --offset 1.5`
+4. 각 파일을 검수한다: `python3 production/tools/review_clip.py <파일> --ep E01 --shot S2`  (C1=S2, C2=S3, C3=S4, C4=S5)`
 5. LOG.csv에 기록하고 아래 표를 채운다.
 
 | 도구 | 입 움직임(낮을수록 좋음) | 얼굴 drift | 시선이 왼쪽 위로 이동? | 렌즈 응시 | **화풍 유지 1~5** | 클립당 비용 | 대기 시간 |
@@ -103,7 +116,7 @@ production/E01/
 **순서: C3 → C1 → C4 → C2 → (S6)**. C3(데크)는 사람이 없어서 실패가 적고 소리와 가장 촘촘히 맞물려서 **가장 먼저** 해서 자신감을 얻는다.
 **클립마다 반복**
 1. 시작·끝 프레임을 지정하고(지원 시) **프롬프트 A**로 후보를 뽑는다. (C1·C4 8개, C2·C3 6개)
-2. 후보를 `generated/candidates/<클립>/`에 이름 규칙대로 저장하고 LOG.csv에 기록한다.
+2. 후보를 `generated/candidates/<클립>/`에 이름 규칙대로 저장하고 LOG.csv에 기록한다. (Claude 검수가 필요하면 상위 후보를 `shortlist/`로 복사)
 3. **C1·C4**: `review_clip.py`로 거른다 → 입 움직임 높은 것, 얼굴 drift 높은 것을 버림 → 눈 움직임 피크 시각이 비트 시트와 가까운 것 2개를 남김.
    **C2·C3**: `sheet.png`로 눈으로 거른다.
 4. 남은 2개를 **직접 재생**해서 설계서의 **합격 기준**을 확인한다.
@@ -190,8 +203,8 @@ python3 production/tools/assemble.py --ep E01 --name E01_cut_v2
 
 ## 9. E02 이후에 이 워크플로우를 재사용하려면
 도구는 이미 **편 번호를 받는 구조**다. 새 편은 **`production/<편>/episode.json` 하나**를 만들면 오버레이·사운드·조립·검수가 같은 명령으로 돌아간다.
-1. `production/E01/`의 구조를 `production/E02/`로 복사하고 `source/`에 새 기준 이미지를 둔다. (`generated/`의 후보와 `build/`는 복사하지 않는다)
-2. `E02/episode.json`을 편집한다: `id`, `tape_id`, `side`, `duration`, `overlay.captions`, `audio.timing·events·marks`, `video.shots·effects·lamp`, `review.boxes`
+1. **`production/_template/`을 `production/E02/`로 복사**한다. (E01을 통째로 복사하면 오디오·애니매틱·오버레이 산출물이 따라온다) `source/`에 새 기준 이미지를 둔다.
+2. `E02/episode.json`을 편집한다. 키 설명은 **`production/EPISODE_JSON.md`**. 필수 키가 빠지면 도구가 렌더 전에 어떤 키인지 알려 준다: `id`, `tape_id`, `side`, `duration`, `overlay.captions`, `audio.timing·events·marks`, `video.shots·effects·lamp`, `review.boxes`
 3. 같은 명령에 `--ep E02`를 붙여 실행한다: `make_overlay.py`, `make_audio.py`, `plot_audio.py`, `make_animatic.py`, `assemble.py`, `review_clip.py`
 4. 초단위 설계서의 구조(프레임표 → 비트 시트 → 3단계 프롬프트 → 합격 기준 → EDL)를 편마다 작성한다.
 5. 시즌 1 기획서의 **편별 비트**에서 행동 사전의 행동 ID를 골라 새 비트 시트를 만든다.

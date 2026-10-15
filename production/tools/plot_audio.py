@@ -2,7 +2,7 @@
 """Draws production/<EP>/audio/<EP>_audio_timeline.png: waveform + spectrogram with the event markers
 (markers come from episode.json -> audio.marks).  Usage: python3 production/tools/plot_audio.py --ep E01
 Needs numpy and Pillow (no matplotlib)."""
-import argparse, json, os, wave
+import argparse, os, sys, wave
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
@@ -15,8 +15,9 @@ def load(p):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--ep", default="E01"); a = ap.parse_args()
-    with open(f"{ROOT}/production/{a.ep}/episode.json", encoding="utf-8") as f:
-        MARKS = [tuple(m) for m in json.load(f)["audio"]["marks"]]
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import episode as epcfg
+    MARKS = [tuple(m) for m in epcfg.load(a.ep, need=("audio",))["audio"].get("marks", [])]
     SRC = f"{ROOT}/production/{a.ep}/audio/{a.ep}_audio_temp_mix.wav"
     OUT = f"{ROOT}/production/{a.ep}/audio/{a.ep}_audio_timeline.png"
     x, sr = load(SRC)
@@ -67,7 +68,7 @@ def main():
         xx = PAD_L + int(t / dur * W)
         d.line([(xx, PAD_T - 4), (xx, ys + H_SPEC)], fill=(255, 176, 0))
         d.text((xx + 3, PAD_T - 22 - (12 if MARKS.index((t, label)) % 2 else 0)), label, font=f, fill=(255, 176, 0))
-    for s in range(0, 21, 2):
+    for s in range(0, int(dur) + 1, 2):
         xx = PAD_L + int(s / dur * W)
         d.text((xx - 6, ys + H_SPEC + 6), f"{s}s", font=f, fill=(143, 129, 96))
     img.save(OUT)

@@ -22,7 +22,7 @@ Outputs (production/<EP>/audio/)
 Usage:  python3 production/tools/make_audio.py --ep E01
 Tuning: edit "mix" in episode.json (all values in dB) and re-run.   Needs numpy; ffmpeg (optional, for loudness).
 """
-import argparse, json, os, re, subprocess, tempfile, wave
+import argparse, os, re, subprocess, sys, tempfile, wave
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -47,8 +47,9 @@ rng = None
 def configure(ep):
     global EP, CFG, OUT, DUR, N, TARGET_LUFS, CEILING_DB, BREATH, MIX, TIMING, rng
     EP = ep
-    with open(f"{ROOT}/production/{ep}/episode.json", encoding="utf-8") as f:
-        CFG = json.load(f)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import episode as epcfg
+    CFG = epcfg.load(ep, need=("overlay", "audio"))
     A = CFG["audio"]
     DUR = float(CFG["duration"]); N = int(SR * DUR)
     TARGET_LUFS = A.get("target_lufs", -16.0); CEILING_DB = A.get("ceiling_db", -1.5)
@@ -344,6 +345,9 @@ def soft_limit(x, ceil_lin):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--ep", default="E01"); a = ap.parse_args()
     configure(a.ep); build_hits()
+    for (t0, name, lvl, p, wet) in events():                    # fail now, not after the synthesis
+        if name not in HITS: sys.exit(f"episode.json: event at {t0}s uses unknown hit '{name}'. Known: {sorted(HITS)} (add new ones to build_hits())")
+        if lvl not in MIX: sys.exit(f"episode.json: event at {t0}s uses unknown level key '{lvl}'. Known: {sorted(MIX)} (add it to audio.mix / DEFAULT_MIX)")
     os.makedirs(OUT, exist_ok=True)
     for old in ("bed_room_hiss_hum.wav", "bed_pad.wav", "sfx_bip.wav", "sfx_tick.wav", "sfx_click.wav"):
         p = f"{OUT}/{old}"
@@ -374,7 +378,7 @@ def main():
     peaks = {"key": -3, "relay": -6, "type": -6, "slide": -6, "scrape": -6, "thunk": -3, "hand": -3, "poweron": -3,
              "spindown": -3, "breath": -6, "glitch": -6}
     for k, v in HITS.items():
-        write_wav(f"{OUT}/sfx_{k}.wav", v * db(peaks[k]))
+        write_wav(f"{OUT}/sfx_{k}.wav", v * db(peaks.get(k, -6)))
 
     l2, tp = measure(f"{OUT}/{EP}_audio_temp_mix.wav")
     print(f"mix: {l2} LUFS integrated, sample peak {20 * np.log10(np.max(np.abs(final))):.1f} dBFS, ebur128 peak {tp} dBFS")

@@ -17,13 +17,26 @@ Usage:
 Output: <out-dir>/<name>.mp4   (--both: <name>_clean.mp4 and <name>_labeled.mp4).  Default out-dir: production/<EP>/build, name: <EP>_cut
 Needs: Pillow, numpy, ffmpeg; the overlay and audio from make_overlay.py / make_audio.py.
 """
-import argparse, json, os, shutil, subprocess, tempfile
+import argparse, os, shutil, subprocess, sys, tempfile
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import episode as epcfg
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOOK = f"{ROOT}/production/tools/tape_look.sh"
 W, H = 1080, 1920
+def find_label_font():
+    """font for the burned-in shot labels (review videos only); override with LABEL_FONT=/path/to/font.ttf"""
+    for c in [os.environ.get("LABEL_FONT"), "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", "/usr/share/fonts/dejavu/DejaVuSansMono.ttf",
+              "/usr/share/fonts/TTF/DejaVuSansMono.ttf", "/System/Library/Fonts/Menlo.ttc", "/System/Library/Fonts/Supplemental/Courier New.ttf",
+              "/Library/Fonts/Courier New.ttf", "C:/Windows/Fonts/consola.ttf"]:
+        if c and os.path.exists(c): return c
+    return None
+
+def frame_ms(t): return int(round(t * 1000))      # lamp phase in whole milliseconds (float % misjudges exact multiples like 4.0 s)
+
 smooth = lambda x: (lambda v: v * v * (3 - 2 * v))(max(0.0, min(1.0, x)))
 
 # ---------------------------------------------------------------- effects (episode independent)
@@ -56,7 +69,7 @@ class ClipReader:
                f"fps={fps},scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H}",
                "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
         self.p = subprocess.Popen(cmd, stdout=subprocess.PIPE); self.last = None; self.n = W * H * 3; self.idx = 0
-        self.first = self.next()
+        self.first = self.next()                       # None if the file could not be decoded
     def next(self):
         b = self.p.stdout.read(self.n)
         if len(b) == self.n: self.last = Image.frombytes("RGB", (W, H), b)
@@ -69,8 +82,7 @@ class ClipReader:
 class Episode:
     def __init__(self, ep, clips_dir=None, standin_only=False):
         self.ep = ep; self.dir = f"{ROOT}/production/{ep}"
-        with open(f"{self.dir}/episode.json", encoding="utf-8") as f: self.cfg = json.load(f)
-        v = self.cfg["video"]; self.v = v
+        self.cfg = epcfg.load(ep, need=("overlay", "video")); v = self.cfg["video"]; self.v = v
         self.fps = int(self.cfg["fps"]); self.dur = float(self.cfg["duration"]); self.nf = int(round(self.fps * self.dur))
         self.shots = {s["id"]: s for s in v["shots"]}; self.order = [s["id"] for s in v["shots"]]
         self.clips_dir = clips_dir or f"{self.dir}/generated/selected"
@@ -81,15 +93,32 @@ class Episode:
         self.real = {}; self.stills = {}; self.readers = {}
         for sid, s in self.shots.items():
             if "file" not in s: continue
-            p = f"{self.clips_dir}/{s['file']}"; ok = (not standin_only) and os.path.exists(p); self.real[sid] = ok
+            p = f"{self.clips_dir}/{s['file']}"; ok = (not standin_only) and os.path.exists(p)
+            if ok and not s["file"].lower().endswith((".png", ".jpg", ".jpeg", ".webp")): ok = self.check_clip(sid, p)
+            self.real[sid] = ok
             if ok and s["file"].lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
                 im = Image.open(p).convert("RGB"); r = max(W / im.width, H / im.height)
                 im = im.resize((int(im.width * r + .5), int(im.height * r + .5)), Image.LANCZOS)
                 x0, y0 = (im.width - W) // 2, (im.height - H) // 2
                 self.stills[sid] = im.crop((x0, y0, x0 + W, y0 + H))
 
-    # ---- lamp: on during the first `on` seconds of every `period`
-    def lamp_on(self, t): return (t % self.lamp["period"]) < self.lamp["on"]
+    def check_clip(self, sid, path):
+        """warn about clips shorter than the timeline needs; refuse files ffprobe cannot read"""
+        s = self.shots[sid]
+        try:
+            d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+                                     capture_output=True, text=True).stdout.strip())
+        except Exception: d = 0.0
+        if d <= 0.1:
+            print(f"  WARNING {sid}: {os.path.basename(path)} cannot be read (0 s) -> using the stand-in"); return False
+        need = s.get("head", 0) + (s["t1"] - s["t0"])
+        if d < need - 0.05:
+            print(f"  WARNING {sid}: {os.path.basename(path)} is {d:.2f} s but the cut needs {need:.2f} s (head {s.get('head', 0)} + {s['t1'] - s['t0']:.1f}); "
+                  f"the last frame will be held for {need - d:.2f} s")
+        return True
+
+    # ---- lamp: on during the first `on` seconds of every `period` (whole milliseconds, so exact multiples are not misjudged)
+    def lamp_on(self, t): return (frame_ms(t) % frame_ms(self.lamp["period"])) < frame_ms(self.lamp["on"])
     def make_lamp_off(self):
         """paint the lamp out of the still so the stand-in can 'blink' (the AI clip blinks it for real)"""
         src = self.src_on; lx, ly = self.lamp["src"]
@@ -106,14 +135,17 @@ class Episode:
                 k = smooth((t - t0) / (t1 - t0)); return x0 + (x1 - x0) * k, y0 + (y1 - y0) * k, z0 + (z1 - z0) * k
         k = keys[-1]; return k[1], k[2], k[3]
     def view(self, src, cx, cy, zoom):
-        vw = self.SW / zoom; s = vw / W
-        return src.transform((W, H), Image.AFFINE, (s, 0, cx - vw / 2, 0, s, cy - (H * s) / 2), resample=Image.BICUBIC)
+        vw = self.SW / zoom; s = vw / W; vh = H * s
+        cx = min(max(cx, vw / 2), self.SW - vw / 2) if vw <= self.SW else self.SW / 2          # keep the window inside the still:
+        cy = min(max(cy, vh / 2), self.SH - vh / 2) if vh <= self.SH else self.SH / 2          # no black bands at the edges
+        return src.transform((W, H), Image.AFFINE, (s, 0, cx - vw / 2, 0, s, cy - vh / 2), resample=Image.BICUBIC)
     def standin(self, sid, t):
         return self.view(self.src_on if self.lamp_on(t) else self.src_off, *self.cam_at(sid, t))
 
     def rec_dot_frame(self, t):
         base = Image.new("RGB", (W, H), (11, 13, 12)); ox, oy = self.lamp["out"]
-        if self.lamp_on(t):
+        flick = t < self.cfg["overlay"].get("flicker_until", 0) and int(round(t * self.fps)) % 3 == 0     # same power-on flicker as the overlay
+        if self.lamp_on(t) and not flick:
             glow = Image.new("RGB", (W, H), (0, 0, 0))
             ImageDraw.Draw(glow).ellipse([ox - 34, oy - 34, ox + 34, oy + 34], fill=(150, 25, 18))
             glow = glow.filter(ImageFilter.GaussianBlur(26))
@@ -126,8 +158,8 @@ class Episode:
         if not p: return img
         k = smooth((t - s["t0"]) / (s["t1"] - s["t0"])); z = p["z"][0] + (p["z"][1] - p["z"][0]) * k
         if z <= 1.0001: return img
-        cx, cy = p["c"][0] * W, p["c"][1] * H
-        return img.transform((W, H), Image.AFFINE, (1 / z, 0, cx - W / (2 * z), 0, 1 / z, cy - H / (2 * z)), resample=Image.BICUBIC)
+        cx, cy = p["c"][0] * W, p["c"][1] * H                                   # fixed point of the zoom: c stays where it is, the rest grows away from it
+        return img.transform((W, H), Image.AFFINE, (1 / z, 0, cx * (1 - 1 / z), 0, 1 / z, cy * (1 - 1 / z)), resample=Image.BICUBIC)
 
     def render_shot(self, sid, t):
         s = self.shots[sid]; kind = s.get("kind")
@@ -139,6 +171,8 @@ class Episode:
         if sid not in self.readers:
             self.readers[sid] = ClipReader(f"{self.clips_dir}/{s['file']}", s.get("head", 0), s["t1"] - s["t0"], self.fps)
         r = self.readers[sid]
+        if r.first is None:
+            print(f"  WARNING {sid}: no frames decoded from {s['file']} -> using the stand-in"); self.real[sid] = False; return self.standin(sid, t)
         if t < s["t0"]: return self.push(r.first, sid, s["t0"])                 # dissolve pre-roll: the first used frame
         k = int(round((t - s["t0"]) * self.fps))
         while r.idx < k: r.next(); r.idx += 1
@@ -162,7 +196,7 @@ class Episode:
 
     def label(self, sid):
         s = self.shots[sid]
-        if self.standin_only or s.get("kind"): return s["label"] if self.standin_only else "editor"
+        if self.standin_only or s.get("kind"): return s.get("label", sid) if self.standin_only else "editor"
         return "REAL " + s["file"] if self.real.get(sid) else "stand-in"
 
     def close(self):
@@ -193,12 +227,17 @@ def run(argv=None):
     if not a.no_look:
         base = f"{tmp}/base_look.mp4"
         subprocess.run(["bash", LOOK, raw, base], check=True, env={**os.environ, "GRAIN": os.environ.get("GRAIN", "11")})
+    label_font = find_label_font()
+    want_labels = a.labeled or a.both
+    if want_labels and not label_font:
+        print("  NOTE: no label font found (set LABEL_FONT=/path/to/font.ttf); shot labels are skipped")
+        if a.both is False and a.labeled: a.labeled = False
     crf, rate, buf = ("26", "7M", "14M") if a.quality == "draft" else ("20", "12M", "24M")
 
     def composite(dst, labeled):
         vf = "[0:v][1:v]overlay=format=auto"
-        if labeled:
-            fnt = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+        if labeled and label_font:
+            fnt = label_font
             for sid in E.order:
                 s = E.shots[sid]; txt = f"{E.label(sid)}  {s['t0']:.1f}-{s['t1']:.1f}s".replace(":", "\\:")
                 if not E.standin_only: txt = f"{sid} {txt}"
@@ -213,7 +252,8 @@ def run(argv=None):
         subprocess.run(cmd, check=True); print("built:", dst)
 
     if a.both:
-        composite(f"{out_dir}/{name}_clean.mp4", False); composite(f"{out_dir}/{name}_labeled.mp4", True)
+        composite(f"{out_dir}/{name}_clean.mp4", False)
+        if label_font: composite(f"{out_dir}/{name}_labeled.mp4", True)
     else:
         composite(f"{out_dir}/{name}.mp4", a.labeled)
     shutil.rmtree(tmp, ignore_errors=True)
