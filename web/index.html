@@ -25,6 +25,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+:root{--s:1}
 body{
   display:flex;align-items:center;justify-content:center;
   color:#ddd;font-family:var(--mono);
@@ -77,7 +78,7 @@ body.solved .lamp.sig span{background:var(--green);box-shadow:0 0 12px var(--gre
 #snd{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;font:700 10px/1 var(--mono);letter-spacing:.18em;color:#3a3223;padding:6px 8px;border-radius:4px;border:1.5px solid rgba(42,36,26,.55)}
 #snd .dot{width:10px;height:10px;border-radius:50%;background:#12301c;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
 #snd[aria-pressed="true"] .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
-#snd:focus-visible,.key:focus-visible,#tape:focus-visible,.spine:focus-visible,.nub:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+#snd:focus-visible,.key:focus-visible,#tape:focus-visible,#flip:focus-visible,.spine:focus-visible,.nub:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 
 /* bay */
 #bay{position:absolute;left:26px;top:76px;width:360px;height:224px;border-radius:12px;
@@ -157,9 +158,11 @@ body.hint2 #counter{animation:hintpulse 1.6s ease-in-out infinite}
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.28 .008' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .30 0 0 0 0 .22 0 0 0 0 .10 0 0 0 2.6 -1.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .22 0 0 0 0 .16 0 0 0 0 .08 0 0 0 3.2 -1.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")}
+.st-l{left:30px;top:362px}.st-r{right:30px;top:362px}
 .stencil{position:absolute;font:400 9px/1 var(--stencil);letter-spacing:.3em;color:#3a3223;opacity:.82;white-space:nowrap}
 .hazard{position:absolute;left:28px;right:28px;top:447px;height:8px;opacity:.82;
   background:repeating-linear-gradient(-45deg,#1b1a15 0 9px,#c79a2b 9px 18px);box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+#note1{left:40px;top:58px;transform:rotate(-2deg)}#note2{left:512px;top:296px;transform:rotate(1.5deg)}
 .note{position:absolute;z-index:5;pointer-events:none;padding:4px 12px 5px;font:600 17px/1 var(--hand);color:#3a2a1c;white-space:nowrap;
   background:linear-gradient(#e7d9ac,#d6c68e);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));
   clip-path:polygon(0 10%,2% 0,6% 12%,11% 0,100% 0,99% 26%,100% 50%,98% 76%,100% 100%,93% 90%,87% 100%,81% 88%,0 100%,2% 62%,0 32%)}
@@ -172,6 +175,10 @@ body.hint2 #counter{animation:hintpulse 1.6s ease-in-out infinite}
 #annun .k-tape,#annun .k-sig,#annun .k-bat{color:var(--green)}
 #annun .k-date{color:var(--amber)}
 #annun .k-con{color:var(--red)}
+#annun .k-time{color:var(--green);display:none}
+body.solved #annun .k-time{display:block}
+#sideTag{display:none;width:18px;height:18px;line-height:15px;text-align:center;font:22px/16px var(--lcdfont);color:var(--green);border:2px solid currentColor;text-shadow:0 0 5px rgba(77,255,136,.7);box-shadow:0 0 5px rgba(77,255,136,.35)}
+#sideTag.on{display:block}
 
 /* ---------- TAPE ---------- */
 #tape{all:unset;position:absolute;left:30px;top:490px;width:336px;height:212px;z-index:2;cursor:pointer;
@@ -186,6 +193,15 @@ body.hint1 #tape:not(.in-bay) .morse,body.hint1 #tape .morse{filter:drop-shadow(
 @keyframes hintink{50%{opacity:.55}}
 body:not(.touched) #tape:not(.in-bay){animation:bob 3.4s ease-in-out infinite}
 @keyframes bob{50%{transform:rotate(-3deg) translateY(-4px)}}
+/* SIDE B: a hit zone over the label header (only present once the first tape is logged) */
+#flip{all:unset;position:absolute;left:52px;top:500px;width:292px;height:58px;z-index:3;cursor:pointer;transform:rotate(-3deg);border-radius:6px}
+#flip[hidden]{display:none}
+#flip:hover + #tape{transform:rotate(-2deg) translateY(-3px)}
+body.hintflip #tape .sidetxt{filter:drop-shadow(0 0 2px #ff9a00) drop-shadow(0 0 6px #ff9a00);animation:hintink 1.8s ease-in-out infinite}
+body.hinteject #kEject{animation:keyglow 1.6s ease-in-out infinite}
+@keyframes keyglow{50%{box-shadow:0 7px 0 #0f0e0c,0 0 0 3px rgba(255,176,0,.75),0 0 18px rgba(255,176,0,.55),inset 0 1px 0 rgba(255,255,255,.18)}}
+body.hintbat #annun .k-bat{animation:annpulse 1.6s ease-in-out infinite}
+@keyframes annpulse{0%,100%{opacity:.17}50%{opacity:1;filter:drop-shadow(0 0 4px currentColor)}}
 
 /* ---------- SHELF ---------- */
 #shelf{position:absolute;left:420px;top:492px;width:318px;height:208px;display:grid;grid-template-columns:repeat(9,1fr);grid-auto-rows:1fr;gap:6px 4px;
@@ -208,6 +224,47 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
 @media (prefers-reduced-motion: reduce){
   .grain{animation:none}#lcdLines{animation:none}.lamp.rec span{animation:none;background:#a3241b}
   body:not(.touched) #tape:not(.in-bay){animation:none}#dust{display:none}
+  #lcdLines .ln:last-child::after{animation:none}
+  #tape,#door,#annun svg,.key{transition:none}
+  body.hint1 #tape .morse,body.hintflip #tape .sidetxt,body.hinteject #kEject,body.hint2 #counter,body.hintbat #annun .k-bat{animation:none}
+  body.hint2 #counter{box-shadow:inset 0 2px 4px rgba(0,0,0,.7),0 0 0 3px rgba(255,176,0,.75)}
+  body.hinteject #kEject{box-shadow:0 7px 0 #0f0e0c,0 0 0 3px rgba(255,176,0,.75),inset 0 1px 0 rgba(255,255,255,.18)}
+  body.hintbat #annun .k-bat{opacity:1}
+}
+
+/* touch: invisible padding so every control has a ~44 CSS px hit area at the current stage scale */
+@media (pointer: coarse){
+  .key::after{content:"";position:absolute;left:-4px;right:-4px;top:calc(-1 * max(0px, (44px / var(--s) - 68px) / 2));bottom:calc(-1 * max(0px, (44px / var(--s) - 68px) / 2))}
+  .nub,#snd{position:relative}
+  .nub::after{content:"";position:absolute;inset:calc(-1 * max(8px, (44px / var(--s) - 22px) / 2))}
+  #snd::after{content:"";position:absolute;inset:calc(-1 * max(6px, (44px / var(--s) - 24px) / 2)) -6px}
+}
+
+/* portrait phone: the deck is re-stacked vertically (400 wide) so it can be scaled ~0.9 instead of ~0.47; the page scrolls */
+@media (orientation: portrait) and (max-width: 600px){
+  html,body{height:auto;min-height:100vh;overflow-x:hidden;overflow-y:auto}
+  body{align-items:flex-start;padding:12px 0 40px}
+  #stage{width:400px;height:1262px}
+  #stage::before{left:-40px;right:-40px;top:754px;height:520px}
+  #cables{display:none}
+  #deck{width:400px;height:744px}
+  #head{left:20px;right:20px;top:12px;height:70px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:10px}
+  .brand em{display:none}
+  .lamps{width:100%;justify-content:flex-end}
+  #bay,#door{left:20px;top:96px}
+  #lcd{left:20px;top:334px;width:360px}
+  #row3{left:20px;right:20px;top:572px}
+  #knob{display:none}
+  .st-l{left:20px;top:626px}.st-r{right:20px;top:626px}
+  #keys{left:20px;right:20px;top:642px;gap:8px}
+  .hazard{left:20px;right:20px;top:724px}
+  #tape{left:32px;top:782px}
+  #tape.in-bay{left:32px;top:102px}
+  #flip{left:54px;top:796px}
+  #shelf{left:28px;top:1012px;width:344px;height:188px}
+  #tally{left:54px;top:1214px}
+  #note1{left:30px;top:80px}
+  #note2{left:226px;top:548px}
 }
 </style>
 </head>
@@ -248,8 +305,8 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
       <div class="wear" aria-hidden="true"></div>
       <i class="screw" style="left:10px;top:10px"></i><i class="screw" style="right:10px;top:10px"></i>
       <i class="screw" style="left:10px;bottom:10px"></i><i class="screw" style="right:10px;bottom:10px"></i>
-      <span class="stencil" style="left:30px;top:362px" aria-hidden="true">TRANSPORT</span>
-      <span class="stencil" style="right:30px;top:362px" aria-hidden="true">DO NOT OPEN WHILE PLAYING</span>
+      <span class="stencil st-l" aria-hidden="true">TRANSPORT</span>
+      <span class="stencil st-r" aria-hidden="true">DO NOT OPEN WHILE PLAYING</span>
       <div class="hazard" aria-hidden="true"></div>
 
       <div id="head">
@@ -263,8 +320,8 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
 
       <div id="bay" aria-hidden="true"></div>
 
-      <div id="lcd" role="log" aria-live="polite" aria-label="Tape log">
-        <div id="lcdStatus"><b id="stMode">NO TAPE</b><span id="annun" aria-hidden="true"><svg class="k-tape" viewBox="0 0 48 48"><use href="#s7-tape"/></svg><svg class="k-sig" viewBox="0 0 48 48"><use href="#s7-signal"/></svg><svg class="k-bat" viewBox="0 0 48 48"><use href="#s7-battery"/></svg><svg class="k-date" viewBox="0 0 48 48"><use href="#s7-date-masked"/></svg><svg class="k-con" viewBox="0 0 48 48"><use href="#s7-no-contact"/></svg></span></div>
+      <div id="lcd" role="group" aria-label="Tape log">
+        <div id="lcdStatus"><b id="stMode">NO TAPE</b><span id="annun" aria-hidden="true"><b id="sideTag">B</b><svg class="k-tape" viewBox="0 0 48 48"><use href="#s7-tape"/></svg><svg class="k-sig" viewBox="0 0 48 48"><use href="#s7-signal"/></svg><svg class="k-bat" viewBox="0 0 48 48"><use href="#s7-battery"/></svg><svg class="k-date" viewBox="0 0 48 48"><use href="#s7-date-masked"/></svg><svg class="k-con" viewBox="0 0 48 48"><use href="#s7-no-contact"/></svg><svg class="k-time" viewBox="0 0 48 48"><use href="#s7-time-playing"/></svg></span></div>
         <div id="lcdLines"></div>
       </div>
 
@@ -287,11 +344,12 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
     </section>
 
     <div id="door"></div>
-    <button id="tape" type="button" aria-label="Cassette tape"></button>
+    <button id="flip" type="button" aria-label="Flip tape" hidden></button>
+    <button id="tape" type="button" aria-label="Cassette tape, side A"></button>
     <div id="shelf" role="group" aria-label="Tape shelf"></div>
     <svg id="tally" viewBox="0 0 290 40" aria-hidden="true"></svg>
-    <div class="note" style="left:40px;top:58px;transform:rotate(-2deg)" aria-hidden="true">BATT. CHECK DAILY</div>
-    <div class="note" style="left:512px;top:296px;transform:rotate(1.5deg)" aria-hidden="true">LOG EVERYTHING</div>
+    <div class="note" id="note1" aria-hidden="true">BATT. CHECK DAILY</div>
+    <div class="note" id="note2" aria-hidden="true">LOG EVERYTHING</div>
 
   </div>
 </main>
@@ -300,6 +358,7 @@ noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:
   <h1>OLD FUTURE | MIA-027</h1>
   <p>Station 7 is still transmitting. No reply.</p>
   <ul id="srLinks"></ul>
+  <div id="srLog" role="log" aria-live="polite" aria-atomic="false" aria-label="Tape log"></div>
 </div>
 <div id="foot">STATION 7</div>
 <div class="vignette"></div>
@@ -321,11 +380,16 @@ const CONFIG = {
     youtube:   ''         // e.g. 'https://www.youtube.com/@oldfuture'
   },
   storageKey: 'oldfuture.solved.v1',
-  hintAfterSec: [60, 120, 200]   // seconds without progress -> hint level 1, 2, 3
+  hintAfterSec: [60, 120, 200],  // seconds without progress -> hint level 1, 2, 3
+  /* stage 2 (SIDE B) */
+  codeB: '62',                   // the answer on SIDE B. Shown on the B label as Morse; counter 062.
+  storageKeyB: 'oldfuture.solvedB.v1',
+  hintAfterSecB: [60, 120, 200]  // stage-2 hint levels (glow, pulse, LCD line)
 };
 
 const MORSE = {'0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.'};
 const TARGET = parseInt(CONFIG.code, 10);
+const TARGET_B = parseInt(CONFIG.codeB, 10);
 const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -338,22 +402,32 @@ const S = {
   inserted:false, busy:false,
   mode:'stop',            // stop | play | ff | rew
   counter:0, holdT:0,
-  solved:false, transmitting:false, scene:0, stopPad:null,
-  stuckSince:performance.now(), hint3:false,
+  solved:false, solvedB:false, side:'A', transmitting:false, scene:0, stopPad:null,
+  stuckSince:performance.now(), hint3:false, hint3b:false,
   vu:[0,0], reel:0
 };
 try { S.solved = localStorage.getItem(CONFIG.storageKey) === '1'; } catch(e){}
-if (location.search.includes('reset')) { S.solved = false; try { localStorage.removeItem(CONFIG.storageKey); } catch(e){} }
+try { S.solvedB = localStorage.getItem(CONFIG.storageKeyB) === '1'; } catch(e){}
+if (location.search.includes('reset')) {
+  S.solved = false; S.solvedB = false;
+  try { localStorage.removeItem(CONFIG.storageKey); } catch(e){}
+  try { localStorage.removeItem(CONFIG.storageKeyB); } catch(e){}
+}
+if (!S.solved) S.solvedB = false;   // SIDE B only exists after the first tape is logged
 
 /* =========================================================
    STAGE SCALING
    ========================================================= */
 const wrap = $('#stageWrap'), stage = $('#stage');
+const mqPortrait = matchMedia('(orientation: portrait) and (max-width: 600px)');
 function fit(){
-  const s = Math.min((innerWidth - 32) / 760, (innerHeight - 36) / 770, 1.3);
-  wrap.style.width = 760 * s + 'px';
-  wrap.style.height = 770 * s + 'px';
+  /* portrait phone: 400x1262 stacked layout, fitted to width (page scrolls); otherwise the 760x770 desk fitted to the window */
+  const P = mqPortrait.matches, W = P ? 400 : 760, H = P ? 1262 : 770;
+  const s = P ? Math.min((innerWidth - 24) / W, 1.3) : Math.min((innerWidth - 32) / W, (innerHeight - 36) / H, 1.3);
+  wrap.style.width = W * s + 'px';
+  wrap.style.height = H * s + 'px';
   stage.style.transform = `scale(${s})`;
+  document.documentElement.style.setProperty('--s', s.toFixed(3));
 }
 addEventListener('resize', fit); fit();
 
@@ -438,9 +512,15 @@ function level(){
 /* =========================================================
    LCD
    ========================================================= */
-const lcdLines = $('#lcdLines'), MAXL = 6;
+const lcdLines = $('#lcdLines'), MAXL = 6, srLog = $('#srLog');
+/* the typed LCD is hidden from assistive tech; each COMPLETED line is mirrored once into a polite log */
+function mirror(text){
+  const t = String(text).trim(); if (!t) return;
+  const p = document.createElement('p'); p.textContent = t; srLog.appendChild(p);
+  while (srLog.children.length > 8) srLog.removeChild(srLog.firstChild);
+}
 function newLine(cls){
-  const d = document.createElement('div'); d.className = 'ln' + (cls ? ' ' + cls : ''); lcdLines.appendChild(d);
+  const d = document.createElement('div'); d.className = 'ln' + (cls ? ' ' + cls : ''); d.setAttribute('aria-hidden', 'true'); lcdLines.appendChild(d);
   while (lcdLines.children.length > MAXL) lcdLines.removeChild(lcdLines.firstChild);
   return d;
 }
@@ -450,23 +530,26 @@ async function lcdPrint(text, o = {}){
     if (scene !== null && scene !== S.scene) return false;
     d.textContent += ch; await sleep(speed);
   }
+  mirror(text);
   return true;
 }
 function sys(text){ if (S.transmitting) return; lcdPrint(text, { speed: 12 }); }
 function lcdLink(label, url){
   const d = newLine();
-  if (url){ const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '> ' + label; d.appendChild(a); }
-  else { d.textContent = '> ' + label + ': PENDING'; d.classList.add('dim'); }
+  if (url){ const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '> ' + label; d.removeAttribute('aria-hidden'); d.appendChild(a); }
+  else { d.textContent = '> ' + label + ': PENDING'; d.classList.add('dim'); mirror(label + ': PENDING'); }
 }
 function showLinks(){ lcdLink('INSTAGRAM', CONFIG.links.instagram); lcdLink('YOUTUBE', CONFIG.links.youtube); }
 
 /* =========================================================
    TAPE ART (label carries the Morse code)
    ========================================================= */
-function buildTape(){
+let packL, packR, spinL, spinR;
+function buildTape(side = 'A'){
+  const B = side === 'B', code = B ? CONFIG.codeB : CONFIG.code;
   const rnd = (a, b) => a + Math.random() * (b - a);
   let x = 0, ink = '';
-  [...CONFIG.code].forEach((digit, di) => {
+  [...code].forEach((digit, di) => {
     if (di) x += 22;
     [...MORSE[digit]].forEach(sym => {
       const y = rnd(-.8, .8);
@@ -484,12 +567,12 @@ function buildTape(){
       <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset=".4" stop-color="rgba(255,255,255,0)"/></linearGradient>
     </defs>
     <rect x="2" y="2" width="332" height="208" rx="14" fill="url(#tb)" stroke="#6a5f43" stroke-width="2"/>
-    <rect x="22" y="14" width="292" height="104" rx="5" fill="#f1e8cf" stroke="#9a8e6e"/>
-    <rect x="22" y="14" width="292" height="11" rx="5" fill="#c8481f"/><rect x="22" y="25" width="292" height="5" fill="#e29a2b"/>
+    <rect x="22" y="14" width="292" height="104" rx="5" fill="${B ? '#e4e0cb' : '#f1e8cf'}" stroke="#9a8e6e"/>
+    <rect x="22" y="14" width="292" height="11" rx="5" fill="${B ? '#46503f' : '#c8481f'}"/><rect x="22" y="25" width="292" height="5" fill="${B ? '#9aa07a' : '#e29a2b'}"/>
     <text x="30" y="46" font-size="11">STATION 7</text>
-    <text x="306" y="46" font-size="11" text-anchor="end">SIDE A</text>
+    <text class="sidetxt" x="306" y="46" font-size="11" text-anchor="end">SIDE ${B ? 'B' : 'A'}</text>
     <text x="30" y="64" font-size="9" opacity=".75">OPERATOR</text>
-    <path d="M86 62 q4 -9 8 0 t8 0 t8 0 t8 0 t8 0 t8 0 M86 58 q4 -9 8 0 t8 0 t8 0 t8 0 t8 0 t8 0" stroke="#1d1712" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".92"/>
+    <path d="${B ? 'M86 60 q4 -9 8 0 t8 0 t8 0 t8 0' : 'M86 62 q4 -9 8 0 t8 0 t8 0 t8 0 t8 0 t8 0 M86 58 q4 -9 8 0 t8 0 t8 0 t8 0 t8 0 t8 0'}" stroke="#1d1712" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".92"/>
     <line x1="30" y1="104" x2="306" y2="104" stroke="#bdb192"/><line x1="30" y1="84" x2="306" y2="84" stroke="#d7cdb0"/>
     <g class="morse" fill="#1d1712" transform="translate(${tx.toFixed(1)} 86)">${ink}</g>
     <path d="M70 128 h196 a10 10 0 0 1 10 10 v40 a10 10 0 0 1 -10 10 h-196 a10 10 0 0 1 -10 -10 v-40 a10 10 0 0 1 10 -10z" fill="#1a1813" stroke="#0a0907" stroke-width="2"/>
@@ -499,9 +582,9 @@ function buildTape(){
     <circle cx="14" cy="14" r="4" fill="#85795a"/><circle cx="322" cy="14" r="4" fill="#85795a"/><circle cx="14" cy="198" r="4" fill="#85795a"/><circle cx="322" cy="198" r="4" fill="#85795a"/>
     <rect x="2" y="2" width="332" height="208" rx="14" fill="url(#tg)"/>
   </svg>`;
+  packL = $('#packL'); packR = $('#packR'); spinL = $('#spinL'); spinR = $('#spinR');
 }
 buildTape();
-const packL = $('#packL'), packR = $('#packR'), spinL = $('#spinL'), spinR = $('#spinR');
 
 /* =========================================================
    SHELF — 27 slots, 26 empty tapes and one gap
@@ -509,7 +592,8 @@ const packL = $('#packL'), packR = $('#packR'), spinL = $('#spinL'), spinR = $('
 const shelf = $('#shelf');
 for (let i = 1; i <= 27; i++){
   const b = document.createElement('button'); b.type = 'button'; b.className = 'spine' + (i === 27 ? ' gap' : '');
-  b.setAttribute('aria-label', i === 27 ? 'Tape slot' : 'Tape slot, empty');
+  b.setAttribute('aria-label', i === 27 ? 'Tape slot 27' : 'Tape slot ' + i + ', empty');
+  b.tabIndex = i === 1 ? 0 : -1;
   b.addEventListener('click', () => {
     ensureAudio(); touch();
     if (i === 27){ sfx.click(); sys(S.solved ? 'LOGGED' : 'EMPTY SLOT'); }
@@ -517,6 +601,13 @@ for (let i = 1; i <= 27; i++){
   });
   shelf.appendChild(b);
 }
+/* the shelf is one tab stop; arrow keys move between slots */
+shelf.addEventListener('keydown', e => {
+  const sp = [...shelf.children], i = sp.indexOf(document.activeElement); if (i < 0) return;
+  const to = { ArrowRight:i + 1, ArrowLeft:i - 1, ArrowDown:i + 9, ArrowUp:i - 9, Home:0, End:sp.length - 1 }[e.key];
+  if (to === undefined) return; e.preventDefault();
+  const n = sp[clamp(to, 0, sp.length - 1)]; sp.forEach(x => x.tabIndex = -1); n.tabIndex = 0; n.focus();
+});
 
 /* =========================================================
    LEDs
@@ -529,13 +620,14 @@ const ledsL = [...$('#vuL').children], ledsR = [...$('#vuR').children];
    TRANSPORT
    ========================================================= */
 const tape = $('#tape'), door = $('#door');
-const lampEl = { tape:$('#annun .k-tape'), sig:$('#annun .k-sig'), bat:$('#annun .k-bat'), date:$('#annun .k-date'), con:$('#annun .k-con') };
+const lampEl = { tape:$('#annun .k-tape'), sig:$('#annun .k-sig'), bat:$('#annun .k-bat'), date:$('#annun .k-date'), con:$('#annun .k-con'), time:$('#annun .k-time') };
+const sideTag = $('#sideTag'), flipBtn = $('#flip');
 const lamp = (k, on = true) => lampEl[k].classList.toggle('on', on);
 const lampsOff = () => Object.keys(lampEl).forEach(k => lamp(k, false));
-const lampsAll = () => Object.keys(lampEl).forEach(k => lamp(k, true));
+const lampsAll = () => Object.keys(lampEl).forEach(k => lamp(k, k !== 'time' || S.solvedB));
 const keyEl = { play:$('#kPlay'), ff:$('#kFf'), rew:$('#kRew') };
 function touch(){ document.body.classList.add('touched'); }
-function progress(){ S.stuckSince = performance.now(); }
+function progress(){ S.stuckSince = performance.now(); if (S.solved && !S.solvedB) hintsB(); }
 
 function insert(){
   ensureAudio(); touch();
@@ -545,8 +637,13 @@ function insert(){
   setTimeout(() => { door.classList.add('closed'); sfx.thunk(); }, 720);
   setTimeout(() => {
     S.inserted = true; S.busy = false; progress(); lamp('tape');
+    sideTag.classList.toggle('on', S.side === 'B'); tapeAria();
     lcdLines.innerHTML = ''; sys('TAPE LOADED');
   }, 1100);
+}
+function tapeAria(){
+  tape.setAttribute('aria-label', S.inserted ? 'Cassette tape, inserted' : 'Cassette tape, side ' + S.side);
+  tape.tabIndex = S.inserted ? -1 : 0;
 }
 function eject(){
   ensureAudio(); touch(); sfx.click();
@@ -554,8 +651,23 @@ function eject(){
   stopTransport(); S.busy = true;
   door.classList.remove('closed'); sfx.thunk();
   setTimeout(() => { tape.classList.remove('in-bay'); sfx.slide(); }, 520);
-  setTimeout(() => { S.inserted = false; S.busy = false; lampsOff(); lcdLines.innerHTML = ''; sys('NO TAPE'); }, 1250);
+  setTimeout(() => { S.inserted = false; S.busy = false; lampsOff(); sideTag.classList.remove('on'); tapeAria(); progress(); lcdLines.innerHTML = ''; sys('NO TAPE'); }, 1250);
 }
+/* SIDE B: with the tape out of the deck (and the first tape logged) the label header flips it over */
+async function flip(){
+  ensureAudio(); touch();
+  if (!S.solved || S.inserted || S.busy) return;
+  S.busy = true; progress(); sfx.click(); burst(2400, .03, .25);
+  const next = S.side === 'A' ? 'B' : 'A';
+  const turn = (a, b) => { try { return tape.animate([{ transform:`rotate(-3deg) scaleX(${a})` }, { transform:`rotate(-3deg) scaleX(${b})` }], { duration:170, easing:'ease-in-out', fill:'forwards' }); } catch(e){ return null; } };
+  let a1 = null; if (!reduced){ a1 = turn(1, .04); await sleep(175); }
+  S.side = next; S.counter = 0; progress(); buildTape(next); tapeAria();
+  if (!reduced){ const a2 = turn(.04, 1); if (a1) a1.cancel(); await sleep(175); if (a2) a2.cancel(); }
+  sfx.thunk(); S.busy = false;
+}
+flipBtn.addEventListener('click', flip);
+const flipOk = () => S.solved && !S.inserted && !S.busy;
+setInterval(() => { const ok = flipOk(); if (flipBtn.hidden === ok) flipBtn.hidden = !ok; }, 120);
 function stopTransport(msg){
   S.mode = 'stop'; S.scene++; S.transmitting = false; S.holdT = 0;
   if (S.stopPad){ S.stopPad(); S.stopPad = null; }
@@ -567,7 +679,10 @@ function onPlay(){
   if (!S.inserted){ sys('NO TAPE'); return; }
   if (S.transmitting) return;
   S.mode = 'play'; S.holdT = 0; setTransportSound();
-  if (Math.round(S.counter) === TARGET) runTransmission();
+  const at = Math.round(S.counter);
+  if (S.side === 'A' && at === TARGET) runTransmission('A');
+  else if (S.side === 'B' && at === TARGET_B) runTransmission('B');
+  else if (S.side === 'B' && at === 26) sys('NO CONTACT');
   else sys('NO SIGNAL');
 }
 /* FF / REW: tap = nudge by one, hold = wind */
@@ -599,6 +714,7 @@ function bindHold(el, dir){
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => el.addEventListener(ev, holdEnd));
   el.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat){ e.preventDefault(); holdStart(dir); } });
   el.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); holdEnd(); } });
+  el.addEventListener('blur', holdEnd);
   el.addEventListener('contextmenu', e => e.preventDefault());
 }
 bindHold($('#kFf'), 1); bindHold($('#kRew'), -1);
@@ -626,7 +742,13 @@ const LOG = [            // [text, annunciator lamp to light once the line is pr
   ['DATE: --/--/----', 'date'],
   ['NO REPLY']
 ];
-async function runTransmission(){
+const LOG_B = [
+  ['SIDE B'],
+  ['NO ENTRIES'],
+  ['BATTERY: 61%', 'bat'],
+  ['TIME: PLAYING', 'time']
+];
+async function runTransmission(side = 'A'){
   const id = ++S.scene; S.transmitting = true;
   S.stopPad = startPad();
   lcdLines.innerHTML = '';
@@ -635,7 +757,7 @@ async function runTransmission(){
   sfx.bip(520); lamp('sig'); if (!await lcdPrint('SIGNAL FOUND', { scene:id, speed:34 })) return;
   await sleep(1500); if (!alive()) return;
   lcdLines.innerHTML = '';
-  for (const [line, k] of LOG){
+  for (const [line, k] of (side === 'B' ? LOG_B : LOG)){
     sfx.bip(line.startsWith(' ') ? 440 : 720);
     if (!await lcdPrint(line, { scene:id, speed:40 })) return;
     if (k) lamp(k);
@@ -647,10 +769,17 @@ async function runTransmission(){
   await sleep(1400); if (!alive()) return;
   if (S.stopPad){ S.stopPad(); S.stopPad = null; }
   S.mode = 'stop'; S.transmitting = false; setTransportSound();
-  markSolved(true);
+  if (side === 'B') markSolvedB(true); else markSolved(true);
   await sleep(600);
-  lcdLines.innerHTML = ''; await lcdPrint('SIGNAL LOGGED', { speed:30 });
+  lcdLines.innerHTML = ''; await lcdPrint(side === 'B' ? 'SIDE B LOGGED' : 'SIGNAL LOGGED', { speed:30 });
   await sleep(500); showLinks();
+}
+function markSolvedB(fresh){
+  if (S.solvedB && !fresh) return;
+  S.solvedB = true; progress();
+  try { localStorage.setItem(CONFIG.storageKeyB, '1'); } catch(e){}
+  document.body.classList.add('solvedB');
+  document.body.classList.remove('hint1', 'hint2', 'hintbat', 'hintflip', 'hinteject');
 }
 function markSolved(fresh){
   if (S.solved && !fresh) return;
@@ -663,12 +792,26 @@ function markSolved(fresh){
    HINTS (non-verbal: the ink glows, then the counter pulses)
    ========================================================= */
 setInterval(() => {
-  if (S.solved || S.transmitting) return;
+  if (S.transmitting) return;
+  if (S.solved){ if (!S.solvedB) hintsB(); return; }
   const t = (performance.now() - S.stuckSince) / 1000, h = CONFIG.hintAfterSec;
   document.body.classList.toggle('hint1', t >= h[0]);
   document.body.classList.toggle('hint2', t >= h[1]);
   if (t >= h[2] && !S.hint3){ S.hint3 = true; sys('CODE: MORSE'); }
 }, 1000);
+
+/* stage 2: still no verbal help. Tape out on A: the SIDE tag glows. Tape in on A: EJECT glows.
+   On B: the Morse ink glows, then the counter and the battery icon pulse, then the LCD prints CODE: MORSE. */
+function hintsB(){
+  const t = (performance.now() - S.stuckSince) / 1000, h = CONFIG.hintAfterSecB, cl = document.body.classList;
+  const onB = S.side === 'B', l1 = t >= h[0], l2 = t >= h[1];
+  cl.toggle('hint1', l1 && onB);
+  cl.toggle('hintflip', l1 && !onB && !S.inserted);
+  cl.toggle('hinteject', l1 && !onB && S.inserted);
+  cl.toggle('hint2', l2 && onB && S.inserted);
+  cl.toggle('hintbat', l2 && onB && S.inserted);
+  if (t >= h[2] && onB && S.inserted && !S.hint3b){ S.hint3b = true; sys('CODE: MORSE'); }
+}
 
 /* =========================================================
    RENDER LOOP
@@ -727,7 +870,7 @@ requestAnimationFrame(frame);
   [['Instagram', CONFIG.links.instagram], ['YouTube', CONFIG.links.youtube]].forEach(([n, u]) => { if (!u) return; const li = document.createElement('li'); li.innerHTML = `<a href="${u}">${n}</a>`; sr.appendChild(li); });
   await sleep(500);
   if (S.solved){
-    document.body.classList.add('solved'); lampsAll();
+    document.body.classList.add('solved'); if (S.solvedB) document.body.classList.add('solvedB'); lampsAll();
     await lcdPrint('STATION 7', { speed:30 }); await sleep(300);
     await lcdPrint('SIGNAL LOGGED', { speed:30 }); await sleep(300); showLinks();
   } else {
@@ -737,7 +880,7 @@ requestAnimationFrame(frame);
 })();
 
 // debug / testing handle
-window.__oldfuture = { S, CONFIG, insert };
+window.__oldfuture = { S, CONFIG, insert, flip };
 
 /* tally marks on the desk: 27 strokes, five-bar gates */
 (() => {
