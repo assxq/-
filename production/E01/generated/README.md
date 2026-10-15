@@ -9,5 +9,5 @@
 | `selected/` | **최종 선택 파일**: `C1.mp4` `C2.mp4` `C3.mp4` `C4.mp4` `S6_C.png` | 추적 |
 | `LOG.csv` | 생성 기록 (도구, 시드, 프롬프트 단계, 검수 수치, 판정) | 추적 |
 
-`selected/`의 파일 이름은 **정확히** 위와 같아야 `assemble_E01.py`가 인식한다.
+`selected/`의 파일 이름은 **정확히** 위와 같아야 `assemble.py`가 인식한다. (파일 이름은 `../episode.json`의 `video.shots[].file`에서 정해진다)
 후보 영상은 용량이 커서 git에 올리지 않는다. (본인 PC나 클라우드 드라이브에 보관)

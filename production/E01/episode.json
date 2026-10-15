@@ -1,0 +1,111 @@
+{
+  "id": "E01",
+  "title": "TRANSMISSION #001",
+  "tape_id": "TAPE 027-001",
+  "side": "A",
+  "duration": 20.0,
+  "fps": 24,
+
+  "overlay": {
+    "date_text": "DATE --/--/----",
+    "rec": { "period": 1.6, "on": 0.8 },
+    "flicker_until": 0.4,
+    "ui_static_t": 3.5,
+    "cover_t": 3.9,
+    "type_s": 0.04,
+    "captions": [
+      { "start": 0.6,  "until": 3.6,  "text": "STATION 7",    "icon": "station"  },
+      { "start": 4.5,  "until": 8.0,  "text": "OPERATOR 027", "icon": "operator" },
+      { "start": 12.5, "until": 16.5, "text": "SIGNAL OK.",   "icon": "signal"   },
+      { "start": 18.3, "until": 20.0, "text": "End of tape.", "icon": "stop"     }
+    ]
+  },
+
+  "audio": {
+    "seed": 27,
+    "target_lufs": -16.0,
+    "ceiling_db": -1.5,
+    "breath": true,
+    "mix": {
+      "room": -38, "hiss": -37, "hum": -41, "reels": -49,
+      "pad": -23,
+      "poweron": -17, "key": -14, "relay": -30, "type": -31,
+      "scrape": -21, "slide": -19, "thunk": -13, "latch": -24,
+      "hand": -17, "breath": -24, "spindown": -29, "glitch": -30,
+      "reverb_wet": 0.22, "reverb_rt60": 0.5
+    },
+    "timing": {
+      "hiss_ramp": [[0, 0], [0.3, 0.25], [2, 0.25], [4, 1], [18.3, 1], [20, 1]],
+      "hum_ramp":  [[0, 0], [0.3, 1], [20, 1]],
+      "hum_dip_db": [[0, 0], [15.9, 0], [16.1, -3], [17.0, -3], [17.3, 0], [20, 0]],
+      "reel_ramp": [[10.7, 0], [11.0, 1], [20, 1]],
+      "pad_env":   [[0, 0], [12.0, 0], [15.0, 1], [16.8, 1], [19.0, 0], [20, 0]],
+      "pad_env_pow": 1.2,
+      "pad_bright": [[12, 0.15], [16, 0.75], [19, 0.3]],
+      "pad_vib":    [[12, 0], [14, 1], [20, 1]],
+      "tape_stop": { "t": 18.3, "len": 0.8 },
+      "dropouts": [11.03]
+    },
+    "events_start": [
+      [0.00, "poweron", "poweron", 0, 0.10],
+      [0.02, "key", "key", 0, 0.15]
+    ],
+    "relay_ticks": { "from": 0.0, "until": 17.7, "every": 1.6, "level": "relay", "wet": 0.04 },
+    "type_ticks": { "level": "type", "wet": 0.05 },
+    "events": [
+      [6.50, "scrape", "scrape", -0.35, 0.22],
+      [9.20, "slide", "slide", -0.05, 0.22],
+      [10.60, "thunk", "thunk", 0, 0.25],
+      [10.64, "key", "latch", 0, 0.20],
+      [11.00, "glitch", "glitch", 0, 0.10],
+      [16.00, "hand", "hand", 0.1, 0.25],
+      [18.30, "key", "key", 0, 0.15],
+      [18.30, "spindown", "spindown", 0, 0.20]
+    ],
+    "breath_event": [14.20, "breath", "breath", 0.05, 0.30],
+    "marks": [
+      [0.0, "power-on + PLAY key"], [2.0, "hiss rises"], [6.5, "headset"], [9.2, "cassette in"], [10.6, "door"],
+      [11.0, "dropout"], [12.0, "pad in"], [14.2, "exhale"], [16.0, "hand"], [18.3, "STOP + tape stop"], [19.0, "room only"]
+    ]
+  },
+
+  "video": {
+    "base_image": "source/mia_base_A.png",
+    "lamp": { "src": [301.0, 499.6], "out": [376, 625], "period": 1.6, "on": 0.8 },
+    "shots": [
+      { "id": "S1", "kind": "rec_dot", "t0": 0.0, "t1": 2.0, "label": "S1 · BLACK + REC DOT (editor)" },
+      { "id": "S2", "file": "C1.mp4", "t0": 2.0, "t1": 6.0, "head": 0.5, "push": { "z": [1.0, 1.04], "c": [0.5, 0.46] },
+        "label": "S2 · CLIP 1 · STILL STAND-IN",
+        "standin": [[2.0, 432, 768, 1.0], [6.0, 432, 735, 1.04]] },
+      { "id": "S3", "file": "C2.mp4", "t0": 6.0, "t1": 9.0, "head": 0.5, "push": { "z": [1.0, 1.04], "c": [0.5, 0.5] },
+        "label": "S3 · CLIP 2 · STAND-IN",
+        "standin": [[6.0, 195, 623, 2.62], [9.0, 195, 612, 2.72]] },
+      { "id": "S4", "file": "C3.mp4", "t0": 9.0, "t1": 12.0, "head": 0.5, "push": { "z": [1.0, 1.03], "c": [0.5, 0.5] },
+        "label": "S4 · CLIP 3 · STAND-IN (deck not generated yet)",
+        "standin": [[9.0, 712, 699, 2.84], [12.0, 712, 690, 2.92]] },
+      { "id": "S5", "file": "C4.mp4", "t0": 12.0, "t1": 16.0, "head": 0.5, "push": { "z": [1.0, 1.03], "c": [0.5, 0.47] },
+        "label": "S5 · CLIP 4 · STILL STAND-IN",
+        "standin": [[12.0, 432, 735, 1.02], [16.0, 420, 735, 1.05]] },
+      { "id": "S6", "file": "S6_C.png", "t0": 16.0, "t1": 18.5, "head": 0, "push": { "z": [1.0, 1.03], "c": [0.5, 0.5] },
+        "label": "S6 · STILL C · STAND-IN",
+        "standin": [[16.0, 440, 1160, 2.54], [20.0, 440, 1150, 2.62]] },
+      { "id": "S7", "kind": "crt_off", "from": "S6", "t0": 18.5, "t1": 20.0, "len": 1.1, "label": "S7 · CRT POWER-OFF (editor)" }
+    ],
+    "effects": [
+      { "type": "dissolve", "from": "S1", "to": "S2", "t0": 1.8, "t1": 2.2 },
+      { "type": "impact", "t": 16.0, "offsets": [10, -6, 3, -1] },
+      { "type": "glitch", "t": 11.0, "frames": 3, "seed": 3 },
+      { "type": "glitch", "t": 18.3, "frames": 3, "seed": 5 }
+    ]
+  },
+
+  "review": {
+    "ref": "source/mia_base_A.png",
+    "boxes": {
+      "face":  [270, 430, 620, 820],
+      "eyes":  [290, 545, 575, 620],
+      "mouth": [420, 685, 520, 750],
+      "lamp":  [281, 480, 321, 520]
+    }
+  }
+}

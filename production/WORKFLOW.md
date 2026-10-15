@@ -23,7 +23,8 @@
 | 초단위 설계서 (프레임표·비트·프롬프트·합격기준) | ✅ | `E01_클립프롬프트_초단위.md` |
 | 애니매틱 (타이밍 확인용·최소안) | ✅ | `production/E01/animatic/` |
 | 클립 검수 도구 | ✅ | `production/tools/review_clip.py` |
-| **조립 도구** | ✅ 새로 추가 | `production/tools/assemble_E01.py` |
+| **조립 도구** (편 번호를 받는 `assemble.py`) | ✅ | `production/tools/assemble.py --ep E01` |
+| **편별 설정 파일** | ✅ | `production/E01/episode.json` |
 | 영상 생성 도구 선정 | ⬜ **1단계** | |
 | 입력 이미지 A-H, B1, B2, C (+A-L, A-W) | ⬜ **2단계** | |
 | AI 클립 C1~C4, 정지 이미지 C | ⬜ **3단계** | |
@@ -47,7 +48,7 @@ Claude는 클라우드 세션의 저장소에서 작업하므로 **파일이 저
 1. 생성한 클립을 **본인 PC에서** `production/E01/generated/` 아래 해당 폴더에 넣는다.
 2. 브랜치 `claude/dreamy-pasteur-7bs4ip`에 **푸시**한다. (GitHub 웹에서 파일 업로드도 가능. 웹 업로드는 파일당 25MB 이하)
 3. "후보 올렸어요"라고 알려 주면 Claude가 검수와 조립을 진행한다.
-※ **직접 하는 방법**: 본인 PC에 Python 3, Pillow, numpy, ffmpeg가 있으면 `python3 production/tools/assemble_E01.py` 를 직접 실행해도 된다. (아래 4단계)
+※ **직접 하는 방법**: 본인 PC에 Python 3, Pillow, numpy, ffmpeg가 있으면 `python3 production/tools/assemble.py --ep E01` 를 직접 실행해도 된다. (아래 4단계)
 
 ## 3. 폴더와 이름 규칙
 ```
@@ -115,9 +116,9 @@ production/E01/
 ### 4단계 · 조립 (예상 30분 + 수정)
 ```bash
 # 1) 지금 있는 것만으로 조립 (없는 클립은 애니매틱의 대체 컷으로 채워진다)
-python3 production/tools/assemble_E01.py --labeled --out E01_cut_v1
+python3 production/tools/assemble.py --ep E01 --labeled --name E01_cut_v1
 # 2) 샷 라벨 없이 최종본
-python3 production/tools/assemble_E01.py --out E01_cut_v2
+python3 production/tools/assemble.py --ep E01 --name E01_cut_v2
 # 옵션: --audio 파일.wav (사운드 교체) / --no-look (질감 필터 없이) / --clips 폴더
 ```
 결과: `production/E01/build/<이름>.mp4`. `--labeled`는 샷마다 `REAL C1.mp4` / `stand-in` / `editor`로 표시해서 **무엇이 실제 클립이고 무엇이 대체 컷인지** 한눈에 보여 준다.
@@ -134,9 +135,9 @@ python3 production/tools/assemble_E01.py --out E01_cut_v2
 2. 아래 소리를 실제로 녹음하거나 라이선스가 명확한 음원에서 구한다: **카세트 슬라이드**(9.2), **도어 닫힘**(10.6), **헤드셋 플라스틱 마찰**(6.5), **손이 닿는 소리**(16.0), **재생·정지 키**(0.0 / 18.3)
 3. `stem_sfx.wav`는 끄거나 −6dB 이하로 낮추고 실제 소리를 위에 얹는다. `stem_room`, `stem_tape`, `stem_pad`는 그대로 둔다.
 4. 새 믹스를 `-16 LUFS` 근처로 맞춘다. 측정: `ffmpeg -i mix.wav -af ebur128=peak=true -f null - 2>&1 | grep -E "I:|Peak:"`
-5. `assemble_E01.py --audio <새 믹스>.wav`로 다시 조립.
+5. `assemble.py --ep E01 --audio <새 믹스>.wav`로 다시 조립.
 **G5 (통과 기준)**: 통합 음량 **-17~-15 LUFS**, 피크 **-1dBFS 이하**, 폰 스피커와 이어폰 양쪽에서 들어 봤을 때 **히스가 거슬리지 않음**.
-※ 합성음이 어색하면 말로 알려 주세요. `make_audio_E01.py`의 숫자와 방식을 같이 고친다.
+※ 합성음이 어색하면 말로 알려 주세요. `make_audio.py`의 합성 방식과 `episode.json`의 숫자를 같이 고친다.
 
 ### 6단계 · QA와 업로드 (예상 1시간)
 1. 설계서 9절 QA와 E01 제작 패키지 9절 QA를 다시 한 번 확인
@@ -188,8 +189,10 @@ python3 production/tools/assemble_E01.py --out E01_cut_v2
 | 일정이 늘어짐 | **애니매틱을 최소안으로 먼저 업로드 가능**하다는 점을 기억 (전부 실패해도 영상은 나온다) |
 
 ## 9. E02 이후에 이 워크플로우를 재사용하려면
-1. `production/E01/`을 `production/E02/`로 복사하고 `source/`에 새 기준 이미지를 둔다.
-2. `make_overlay_E01.py`의 `CAPTIONS`와 테이프 ID(`TAPE 027-001`)를 편마다 바꿔 오버레이를 새로 만든다.
-3. 초단위 설계서의 구조(프레임표 → 비트 시트 → 3단계 프롬프트 → 합격 기준 → EDL)를 그대로 따라 편마다 작성한다.
-4. 편이 쌓이면 이 도구들을 **편 번호를 인자로 받는 하나의 도구**로 합친다. (E02 때 하면 된다)
+도구는 이미 **편 번호를 받는 구조**다. 새 편은 **`production/<편>/episode.json` 하나**를 만들면 오버레이·사운드·조립·검수가 같은 명령으로 돌아간다.
+1. `production/E01/`의 구조를 `production/E02/`로 복사하고 `source/`에 새 기준 이미지를 둔다. (`generated/`의 후보와 `build/`는 복사하지 않는다)
+2. `E02/episode.json`을 편집한다: `id`, `tape_id`, `side`, `duration`, `overlay.captions`, `audio.timing·events·marks`, `video.shots·effects·lamp`, `review.boxes`
+3. 같은 명령에 `--ep E02`를 붙여 실행한다: `make_overlay.py`, `make_audio.py`, `plot_audio.py`, `make_animatic.py`, `assemble.py`, `review_clip.py`
+4. 초단위 설계서의 구조(프레임표 → 비트 시트 → 3단계 프롬프트 → 합격 기준 → EDL)를 편마다 작성한다.
 5. 시즌 1 기획서의 **편별 비트**에서 행동 사전의 행동 ID를 골라 새 비트 시트를 만든다.
+※ 새 효과음이 필요하면 `make_audio.py`의 `build_hits()`에 합성 함수를 추가하고, 새 연출 효과가 필요하면 `assemble.py`의 `Episode.frame()`에 효과 종류를 추가한다.

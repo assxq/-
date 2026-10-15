@@ -1,27 +1,34 @@
 #!/usr/bin/env python3
-"""E01 overlay generator (TRANSMISSION #001 / TAPE 027-001).
+"""Episode overlay generator: the tape-frame UI + log captions as a 1080x1920 transparent overlay.
 
-Renders the tape-frame UI + log captions as a 1080x1920, 24 fps, 20 s transparent overlay.
+Everything (tape id, side, captions, REC cycle, duration) comes from production/<EP>/episode.json ("overlay" section).
 
-Outputs (production/E01/overlay/):
+Outputs (production/<EP>/overlay/):
   ui_static.png            UI without counter / REC / captions (transparent)
-  ui_cover_t3.9.png        full UI at t=3.9 s, no caption on screen (for cover frames / stills)
-  caption_1..4_*.png       each log caption, fully typed (transparent, full canvas, already positioned)
-  E01_overlay_alpha.webm   VP9 with alpha (small).  Add --prores to also write E01_overlay_alpha.mov (ProRes 4444, ~160 MB)
-  E01_overlay_preview.mp4  overlay on black + temp audio mix (timing reference)
+  ui_cover_t<T>.png        full UI at overlay.cover_t, pick a moment with no caption on screen (cover frames / stills)
+  caption_<n>_<slug>.png   each log caption, fully typed (transparent, full canvas, already positioned)
+  <EP>_overlay_alpha.webm  VP9 with alpha (small).  Add --prores to also write <EP>_overlay_alpha.mov (ProRes 4444, ~160 MB)
+  <EP>_overlay_preview.mp4 overlay on black + temp audio mix (timing reference)
 
 Needs: Pillow, ffmpeg, the VT323 font (Google Fonts, OFL).  Usage:
-  VT323_PATH=/path/to/VT323.ttf python3 production/tools/make_overlay_E01.py [--prores | --stills]
+  VT323_PATH=/path/to/VT323.ttf python3 production/tools/make_overlay.py --ep E01 [--prores | --stills]
 """
-import os, shutil, subprocess, sys, tempfile
+import argparse, json, os, re, shutil, subprocess, sys, tempfile
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = f"{ROOT}/production/E01/overlay"
 ICONS = f"{ROOT}/icons/png"
-AUDIO = f"{ROOT}/production/E01/audio/E01_audio_temp_mix.wav"
 
-W, H, FPS, DUR = 1080, 1920, 24, 20
+_ap = argparse.ArgumentParser(); _ap.add_argument("--ep", default="E01"); _ap.add_argument("--prores", action="store_true"); _ap.add_argument("--stills", action="store_true")
+ARGS = _ap.parse_args()
+EP = ARGS.ep
+with open(f"{ROOT}/production/{EP}/episode.json", encoding="utf-8") as _f:
+    CFG = json.load(_f)
+OV = CFG["overlay"]
+OUT = f"{ROOT}/production/{EP}/overlay"
+AUDIO = f"{ROOT}/production/{EP}/audio/{EP}_audio_temp_mix.wav"
+
+W, H, FPS, DUR = 1080, 1920, int(CFG["fps"]), float(CFG["duration"])
 GREEN, AMBER, RED = (77, 255, 136), (255, 176, 0), (255, 59, 47)
 DIM = (77, 255, 136)
 
@@ -48,14 +55,11 @@ def icon(name, size, color=None):
     return _icon_cache[key]
 
 # ---- timeline (seconds) ---------------------------------------------------
-TYPE_S = 0.04          # seconds per typed character
-CAPTIONS = [           # start, hold-until, text, icon
-    (0.6,  3.6,  "STATION 7",    "station"),
-    (4.5,  8.0,  "OPERATOR 027", "operator"),
-    (12.5, 16.5, "SIGNAL OK.",   "signal"),
-    (18.3, 20.0, "End of tape.", "stop"),
-]
-CAP_FILES = ["caption_1_station7.png", "caption_2_operator027.png", "caption_3_signalok.png", "caption_4_endoftape.png"]
+TYPE_S = OV.get("type_s", 0.04)        # seconds per typed character
+CAPTIONS = [(c["start"], c["until"], c["text"], c["icon"]) for c in OV["captions"]]
+_slug = lambda t: re.sub(r"[^a-z0-9]", "", t.lower())
+CAP_FILES = [f"caption_{i + 1}_{_slug(c[2])}.png" for i, c in enumerate(CAPTIONS)]
+REC_PERIOD, REC_ON = OV["rec"]["period"], OV["rec"]["on"]
 
 SAFE_L, SAFE_R = 70, 1010          # keep clear of platform UI on the right
 TOP_Y = 280                        # below the top overlay zone
@@ -80,20 +84,20 @@ def legibility_gradient(bars, a_max=165):
 def draw_ui(d, canvas, t, with_counter=True, with_rec=True):
     # row 1: play icon + tape id
     canvas.alpha_composite(icon("play", 64, GREEN), (SAFE_L, TOP_Y - 6))
-    d.text((SAFE_L + 84, TOP_Y + 54), "TAPE 027-001", font=F(64), fill=GREEN + (235,), anchor="ls")
+    d.text((SAFE_L + 84, TOP_Y + 54), CFG["tape_id"], font=F(64), fill=GREEN + (235,), anchor="ls")
     # row 2: side
-    d.text((SAFE_L, TOP_Y + 124), "SIDE A", font=F(46), fill=GREEN + (150,), anchor="ls")
+    d.text((SAFE_L, TOP_Y + 124), f"SIDE {CFG['side']}", font=F(46), fill=GREEN + (150,), anchor="ls")
     # counter (top right), one tick per second
     if with_counter:
         d.text((SAFE_R, TOP_Y + 54), f"{int(t):06d}", font=F(64), fill=GREEN + (235,), anchor="rs")
-    # REC (second row, right): blinks 0.8 s on / 0.8 s off
-    if with_rec and (t % 1.6) < 0.8:
+    # REC (second row, right): blinks on/off on the lamp cycle (episode.json: overlay.rec)
+    if with_rec and (t % REC_PERIOD) < REC_ON:
         tw = d.textlength("REC", font=F(46))
         d.text((SAFE_R, TOP_Y + 124), "REC", font=F(46), fill=RED + (240,), anchor="rs")
         canvas.alpha_composite(icon("record", 46, RED), (int(SAFE_R - tw - 62), TOP_Y + 124 - 40))
     # date row (bottom-left, always masked)
     canvas.alpha_composite(icon("date-masked", 56, AMBER), (SAFE_L, 1450))
-    d.text((SAFE_L + 78, 1494), "DATE --/--/----", font=F(52), fill=AMBER + (225,), anchor="ls")
+    d.text((SAFE_L + 78, 1494), OV.get("date_text", "DATE --/--/----"), font=F(52), fill=AMBER + (225,), anchor="ls")
 
 def draw_caption(d, canvas, bars, t, idx, final=False):
     start, until, text, ic = CAPTIONS[idx]
@@ -113,7 +117,7 @@ def render(t, ui=True, captions=True, counter=True, rec=True, only=None, final=F
     base = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     bars = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(base)
-    visible = not (t < 0.4 and int(t * FPS) % 3 == 0)      # power-on flicker
+    visible = not (t < OV.get("flicker_until", 0.4) and int(t * FPS) % 3 == 0)      # power-on flicker
     if visible:
         if ui:
             legibility_gradient(bars)
@@ -127,29 +131,32 @@ def render(t, ui=True, captions=True, counter=True, rec=True, only=None, final=F
 def main():
     os.makedirs(OUT, exist_ok=True)
     # stills
-    render(3.5, captions=False, counter=False, rec=False).save(f"{OUT}/ui_static.png")
-    render(3.9).save(f"{OUT}/ui_cover_t3.9.png")
+    render(OV.get("ui_static_t", 3.5), captions=False, counter=False, rec=False).save(f"{OUT}/ui_static.png")
+    cover_t = OV.get("cover_t", 3.9)
+    for old in [n for n in os.listdir(OUT) if n.startswith("ui_cover_t")]:
+        os.remove(f"{OUT}/{old}")
+    render(cover_t).save(f"{OUT}/ui_cover_t{cover_t:g}.png")
     for i, name in enumerate(CAP_FILES):
         c = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         b = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         draw_caption(ImageDraw.Draw(c), c, b, 0, i, final=True)
         Image.alpha_composite(b, glow(c)).save(f"{OUT}/{name}")
-    if "--stills" in sys.argv:
+    if ARGS.stills:
         print("stills only"); return
     # frame sequence -> video
-    tmp = tempfile.mkdtemp(prefix="e01_ovl_")
+    tmp = tempfile.mkdtemp(prefix=f"{EP.lower()}_ovl_")
     try:
-        n = FPS * DUR
+        n = int(round(FPS * DUR))
         for k in range(n):
             render(k / FPS).save(f"{tmp}/f_{k:04d}.png")
-        webm = f"{OUT}/E01_overlay_alpha.webm"            # small; VP9 with alpha
+        webm = f"{OUT}/{EP}_overlay_alpha.webm"            # small; VP9 with alpha
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{tmp}/f_%04d.png",
                         "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", "28", "-auto-alt-ref", "0", webm], check=True)
-        if "--prores" in sys.argv:                         # large (~160 MB); for Premiere / DaVinci / Final Cut
+        if ARGS.prores:                         # large (~160 MB); for Premiere / DaVinci / Final Cut
             subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{tmp}/f_%04d.png",
                             "-c:v", "prores_ks", "-profile:v", "4444", "-pix_fmt", "yuva444p10le",
-                            f"{OUT}/E01_overlay_alpha.mov"], check=True)
-        prev = f"{OUT}/E01_overlay_preview.mp4"
+                            f"{OUT}/{EP}_overlay_alpha.mov"], check=True)
+        prev = f"{OUT}/{EP}_overlay_preview.mp4"
         cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", f"color=c=0x0b0d0c:s={W}x{H}:r={FPS}:d={DUR}",
                "-framerate", str(FPS), "-i", f"{tmp}/f_%04d.png"]
         if os.path.exists(AUDIO):

@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
-"""Draws production/E01/audio/E01_audio_timeline.png: waveform + spectrogram with the event markers.
+"""Draws production/<EP>/audio/<EP>_audio_timeline.png: waveform + spectrogram with the event markers
+(markers come from episode.json -> audio.marks).  Usage: python3 production/tools/plot_audio.py --ep E01
 Needs numpy and Pillow (no matplotlib)."""
-import os, wave
+import argparse, json, os, wave
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SRC = f"{ROOT}/production/E01/audio/E01_audio_temp_mix.wav"
-OUT = f"{ROOT}/production/E01/audio/E01_audio_timeline.png"
-
-MARKS = [(0.0, "power-on + PLAY key"), (2.0, "hiss rises"), (6.5, "headset"), (9.2, "cassette in"), (10.6, "door"),
-         (11.0, "dropout"), (12.0, "pad in"), (14.2, "exhale"), (16.0, "hand"), (18.3, "STOP + tape stop"), (19.0, "room only")]
 
 def load(p):
     w = wave.open(p); n = w.getnframes(); sr = w.getframerate(); ch = w.getnchannels()
@@ -18,6 +14,11 @@ def load(p):
     return x.mean(axis=1), sr
 
 def main():
+    ap = argparse.ArgumentParser(); ap.add_argument("--ep", default="E01"); a = ap.parse_args()
+    with open(f"{ROOT}/production/{a.ep}/episode.json", encoding="utf-8") as f:
+        MARKS = [tuple(m) for m in json.load(f)["audio"]["marks"]]
+    SRC = f"{ROOT}/production/{a.ep}/audio/{a.ep}_audio_temp_mix.wav"
+    OUT = f"{ROOT}/production/{a.ep}/audio/{a.ep}_audio_timeline.png"
     x, sr = load(SRC)
     dur = len(x) / sr
     W, H_WAVE, H_SPEC, PAD_L, PAD_T = 1800, 150, 520, 70, 70

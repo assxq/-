@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""E01 sound design v2 (synthesized; use as a reference track and as layers under real foley).
+"""Episode sound design (synthesized; use as a reference track and as layers under real foley).
+
+All timings, levels and events come from production/<EP>/episode.json ("audio" section).
 
 What changed from v1
   * layered hits (plastic tock + body + spring ring), stick-slip friction for slides/scrapes
@@ -9,41 +11,50 @@ What changed from v1
   * power-on thump (0.0 s), a very soft breath (14.2 s)
   * stereo placement, TPDF dither, loudness normalised to -16 LUFS with a soft ceiling
 
-Outputs (production/E01/audio/)
-  E01_audio_temp_mix.wav   final mix, stereo 44.1 kHz 16-bit, ~-16 LUFS
+Outputs (production/<EP>/audio/)
+  <EP>_audio_temp_mix.wav  final mix, stereo 44.1 kHz 16-bit, ~-16 LUFS
   stem_room.wav            room tone                       \\
   stem_tape.wav            hiss + motor hum + reels         |  the four stems sum to the mix
   stem_pad.wav             soft pad                         |  (before the soft ceiling)
   stem_sfx.wav             all hits (dry + reverb)         /
   sfx_*.wav                single hits (dry, mono)
 
-Tuning: edit MIX below (all values in dB) and re-run.   Needs numpy; ffmpeg (optional, for loudness).
+Usage:  python3 production/tools/make_audio.py --ep E01
+Tuning: edit "mix" in episode.json (all values in dB) and re-run.   Needs numpy; ffmpeg (optional, for loudness).
 """
-import os, re, subprocess, tempfile, wave
+import argparse, json, os, re, subprocess, tempfile, wave
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = f"{ROOT}/production/E01/audio"
-SR, DUR = 44100, 20.0
-N = int(SR * DUR)
+SR = 44100
 db = lambda x: 10 ** (x / 20)
 
-# ---------------------------------------------------------------------------
-# MIX — change these numbers to rebalance (dB, relative; everything is normalised to TARGET_LUFS at the end)
-# ---------------------------------------------------------------------------
-TARGET_LUFS = -16.0
-CEILING_DB = -1.5
-MIX = dict(
-    room=-38, hiss=-37, hum=-41, reels=-49,          # beds
-    pad=-23,                                         # soft pad (12 s -> 19 s)
-    poweron=-17, key=-14, relay=-30, type=-31,       # 0.0 s, play/stop keys, REC relay ticks, typed-caption ticks
-    scrape=-21, slide=-19, thunk=-13, latch=-24,     # headset, cassette in, door
-    hand=-17, breath=-24, spindown=-29, glitch=-30,  # hand on deck, exhale, reels slowing, dropout
+# defaults; episode.json overrides
+DEFAULT_MIX = dict(
+    room=-38, hiss=-37, hum=-41, reels=-49, pad=-23,
+    poweron=-17, key=-14, relay=-30, type=-31,
+    scrape=-21, slide=-19, thunk=-13, latch=-24,
+    hand=-17, breath=-24, spindown=-29, glitch=-30,
     reverb_wet=0.22, reverb_rt60=0.5,
 )
-BREATH = True    # set False to remove the exhale at 14.2 s
+# filled in by configure()
+EP = CFG = OUT = None
+DUR, N = 20.0, 0
+TARGET_LUFS, CEILING_DB, BREATH = -16.0, -1.5, True
+MIX, TIMING, HITS = {}, {}, {}
+rng = None
 
-rng = np.random.default_rng(27)
+def configure(ep):
+    global EP, CFG, OUT, DUR, N, TARGET_LUFS, CEILING_DB, BREATH, MIX, TIMING, rng
+    EP = ep
+    with open(f"{ROOT}/production/{ep}/episode.json", encoding="utf-8") as f:
+        CFG = json.load(f)
+    A = CFG["audio"]
+    DUR = float(CFG["duration"]); N = int(SR * DUR)
+    TARGET_LUFS = A.get("target_lufs", -16.0); CEILING_DB = A.get("ceiling_db", -1.5)
+    MIX = {**DEFAULT_MIX, **A.get("mix", {})}; BREATH = A.get("breath", True); TIMING = A["timing"]
+    OUT = f"{ROOT}/production/{ep}/audio"
+    rng = np.random.default_rng(A.get("seed", 27))
 
 # ---------------------------------------------------------------------------
 # small DSP toolbox
@@ -79,7 +90,8 @@ def ex(n, tau):
 def peak1(x):
     return x / (np.max(np.abs(x)) + 1e-12)
 
-def ramp(pts, n=N):
+def ramp(pts, n=None):
+    n = N if n is None else n
     t = np.arange(n) / SR
     return np.interp(t, [p[0] for p in pts], [p[1] for p in pts])
 
@@ -185,9 +197,11 @@ def sfx_glitch():                   # tiny dropout burst
     x = band_noise(n, 3500, 9000) * np.sin(np.pi * t / .12) ** 2 * stick_slip(n, 80, 250, .9)
     return peak1(x)
 
-HITS = {"key": sfx_key(), "relay": sfx_relay(), "type": sfx_type(0), "slide": sfx_slide(), "scrape": sfx_scrape(),
-        "thunk": sfx_thunk(), "hand": sfx_hand(), "poweron": sfx_poweron(), "spindown": sfx_spindown(),
-        "breath": sfx_breath(), "glitch": sfx_glitch()}
+def build_hits():
+    global HITS
+    HITS = {"key": sfx_key(), "relay": sfx_relay(), "type": sfx_type(0), "slide": sfx_slide(), "scrape": sfx_scrape(),
+            "thunk": sfx_thunk(), "hand": sfx_hand(), "poweron": sfx_poweron(), "spindown": sfx_spindown(),
+            "breath": sfx_breath(), "glitch": sfx_glitch()}
 
 # ---------------------------------------------------------------------------
 # beds
@@ -204,15 +218,15 @@ def bed_tape():
     """hiss + motor hum + reels, before the tape transport (wow/flutter, dropout, stop)"""
     out = np.zeros((N, 2)); t = np.arange(N) / SR
     breath = 1 + .16 * np.sin(2 * np.pi * .21 * t) + .08 * np.sin(2 * np.pi * .53 * t + 2)
-    hiss_env = ramp([(0, 0), (.3, .25), (2, .25), (4, 1), (18.3, 1), (20, 1)]) * breath
-    hum_env = ramp([(0, 0), (.3, 1), (20, 1)]) * (1 + .12 * np.sin(2 * np.pi * .9 * t))
-    dip = ramp([(0, 1), (15.9, 1), (16.1, db(-3)), (17.0, db(-3)), (17.3, 1), (20, 1)])
+    hiss_env = ramp(TIMING["hiss_ramp"]) * breath
+    hum_env = ramp(TIMING["hum_ramp"]) * (1 + .12 * np.sin(2 * np.pi * .9 * t))
+    dip = ramp([(t0, db(v)) for t0, v in TIMING["hum_dip_db"]])
     f0 = 58 + 0.5 * np.sin(2 * np.pi * .3 * t)
     ph = 2 * np.pi * np.cumsum(f0) / SR
     motor = sum(a * np.sin(k * ph + k) for k, a in [(1, 1), (2, .45), (3, .22), (4, .12), (5, .06)])
     brush = band_noise(N, 1200, 3800, np.random.default_rng(7)) * (.5 + .5 * np.sin(ph)) ** 2   # commutator brush texture
     reel_am = .55 + .45 * np.sin(2 * np.pi * 5.5 * t)
-    reel_env = ramp([(10.7, 0), (11.0, 1), (20, 1)])
+    reel_env = ramp(TIMING["reel_ramp"])
     for ch in range(2):
         r = np.random.default_rng(200 + ch)
         hiss = tilt_noise(N, 1800, 11000, .6, r) * db(MIX["hiss"]) * hiss_env
@@ -224,9 +238,9 @@ def bed_tape():
 def bed_pad():
     """A2 E3 A3 C4 (same chord as the web page), detuned saws whose brightness opens slowly"""
     out = np.zeros((N, 2)); t = np.arange(N) / SR
-    env = ramp([(0, 0), (12.0, 0), (15.0, 1), (16.8, 1), (19.0, 0), (20, 0)]) ** 1.2
-    bright = ramp([(12, .15), (16, .75), (19, .3)])
-    vib = 1 + (3 / 1200 * np.log(2)) * np.sin(2 * np.pi * 4.6 * t) * ramp([(12, 0), (14, 1), (20, 1)])
+    env = ramp(TIMING["pad_env"]) ** TIMING.get("pad_env_pow", 1.2)
+    bright = ramp(TIMING["pad_bright"])
+    vib = 1 + (3 / 1200 * np.log(2)) * np.sin(2 * np.pi * 4.6 * t) * ramp(TIMING["pad_vib"])
     for k, f in enumerate([110.0, 164.81, 220.0, 261.63]):
         for ch, sgn in enumerate((-1, 1)):
             for det in (-7, 7):
@@ -242,14 +256,17 @@ def bed_pad():
     return out * env[:, None] * db(MIX["pad"])
 
 # ---------------------------------------------------------------------------
-# tape transport: slow wow + fast flutter, a 0.1 s dropout at 11.0 s and the tape stop at 18.3 s
+# tape transport: slow wow + fast flutter, optional 0.1 s dropouts and the tape stop (times from episode.json)
 # ---------------------------------------------------------------------------
 def transport(x):
     t = np.arange(N) / SR
     drift = lowpass(np.random.default_rng(31).standard_normal(N), 3.0); drift /= np.max(np.abs(drift))
     wow = 1 + .0030 * np.sin(2 * np.pi * .55 * t + .7) + .0010 * np.sin(2 * np.pi * 6.8 * t + 2.1) + .0006 * drift
-    stop = np.where(t < 18.3, 1.0, np.clip(1 - (t - 18.3) / .8, 0, 1) ** 1.6)
-    b = np.exp(-((t - 11.03) / .045) ** 2)
+    ts = TIMING.get("tape_stop"); t_stop, len_stop = (ts["t"], ts["len"]) if ts else (1e9, 1.0)
+    stop = np.where(t < t_stop, 1.0, np.clip(1 - (t - t_stop) / len_stop, 0, 1) ** 1.6)
+    b = np.zeros(N)
+    for d0 in TIMING.get("dropouts", []):
+        b = np.maximum(b, np.exp(-((t - d0) / .045) ** 2))
     speed = wow * stop * (1 - .08 * b)
     gain = stop ** .6 * (1 - .85 * b)
     pos = np.clip(np.cumsum(speed), 0, N - 1)
@@ -261,20 +278,21 @@ def transport(x):
 # events (time, hit, level key, pan, reverb send)
 # ---------------------------------------------------------------------------
 def events():
-    ev = [(0.00, "poweron", "poweron", 0, .10), (0.02, "key", "key", 0, .15)]
-    ev += [(float(t), "relay", "relay", 0.0, .04) for t in np.arange(0.0, 17.7, 1.6)]            # REC lamp blinks
-    for start, text in [(0.6, "STATION 7"), (4.5, "OPERATOR 027"), (12.5, "SIGNAL OK."), (18.3, "End of tape.")]:
-        for i, ch in enumerate(text):
-            if ch != " ":
-                ev.append((start + i * 0.04, "type", "type", 0.0, .05))
-    ev += [(6.50, "scrape", "scrape", -.35, .22),   # headset sits on the left of the frame
-           (9.20, "slide", "slide", -.05, .22),
-           (10.60, "thunk", "thunk", 0, .25), (10.64, "key", "latch", 0, .20),
-           (11.00, "glitch", "glitch", 0, .10),
-           (16.00, "hand", "hand", .1, .25),
-           (18.30, "key", "key", 0, .15), (18.30, "spindown", "spindown", 0, .20)]
-    if BREATH:
-        ev.append((14.20, "breath", "breath", .05, .30))
+    A = CFG["audio"]; ov = CFG["overlay"]
+    ev = [tuple(e) for e in A.get("events_start", [])]
+    rt = A.get("relay_ticks")                                              # REC lamp relay on every blink
+    if rt:
+        ev += [(float(t), "relay", rt.get("level", "relay"), 0.0, rt.get("wet", .04))
+               for t in np.arange(rt.get("from", 0.0), rt["until"], rt["every"])]
+    tt = A.get("type_ticks")                                               # one soft tick per typed caption character
+    if tt:
+        for c in ov["captions"]:
+            for i, ch in enumerate(c["text"]):
+                if ch != " ":
+                    ev.append((c["start"] + i * ov.get("type_s", .04), "type", tt.get("level", "type"), 0.0, tt.get("wet", .05)))
+    ev += [tuple(e) for e in A.get("events", [])]
+    if BREATH and A.get("breath_event"):
+        ev.append(tuple(A["breath_event"]))
     return ev
 
 def place_sfx():
@@ -324,6 +342,8 @@ def soft_limit(x, ceil_lin):
     return y
 
 def main():
+    ap = argparse.ArgumentParser(); ap.add_argument("--ep", default="E01"); a = ap.parse_args()
+    configure(a.ep); build_hits()
     os.makedirs(OUT, exist_ok=True)
     for old in ("bed_room_hiss_hum.wav", "bed_pad.wav", "sfx_bip.wav", "sfx_tick.wav", "sfx_click.wav"):
         p = f"{OUT}/{old}"
@@ -348,7 +368,7 @@ def main():
     ceil = db(CEILING_DB)
     final = soft_limit(raw * gain, ceil)
 
-    write_wav(f"{OUT}/E01_audio_temp_mix.wav", final)
+    write_wav(f"{OUT}/{EP}_audio_temp_mix.wav", final)
     for name, stem in (("room", room), ("tape", tape), ("pad", pad), ("sfx", sfx)):
         write_wav(f"{OUT}/stem_{name}.wav", np.clip(stem * gain, -1, 1))
     peaks = {"key": -3, "relay": -6, "type": -6, "slide": -6, "scrape": -6, "thunk": -3, "hand": -3, "poweron": -3,
@@ -356,7 +376,7 @@ def main():
     for k, v in HITS.items():
         write_wav(f"{OUT}/sfx_{k}.wav", v * db(peaks[k]))
 
-    l2, tp = measure(f"{OUT}/E01_audio_temp_mix.wav")
+    l2, tp = measure(f"{OUT}/{EP}_audio_temp_mix.wav")
     print(f"mix: {l2} LUFS integrated, sample peak {20 * np.log10(np.max(np.abs(final))):.1f} dBFS, ebur128 peak {tp} dBFS")
     print("files:", sorted(os.listdir(OUT)))
 
