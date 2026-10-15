@@ -1,0 +1,5 @@
+# generated media that should not bloat git (keep selected/ and images/)
+build/
+generated/bakeoff/
+generated/candidates/
+generated/review/

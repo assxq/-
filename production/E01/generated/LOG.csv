@@ -1,0 +1,1 @@
+id,date,phase,clip,tool,model_version,start_frame,end_frame,prompt_level,seed,duration_s,motion_setting,file,mouth_motion,face_drift_pct,eye_peak_s,lamp_match_pct,lens_gaze,style_fidelity_1to5,cost,verdict,notes
